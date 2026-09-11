@@ -1,0 +1,60 @@
+{
+    "name": "stezkoy/flarum-feed2forum",
+    "description": "A Flarum extension that turns RSS/Atom feeds into real forum discussions, posted to tags by a selected user.",
+    "version": "1.0.0",
+    "keywords": [
+        "flarum",
+        "rss",
+        "atom",
+        "feeds",
+        "discussions"
+    ],
+    "type": "flarum-extension",
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "flarum/core": "^2.0",
+        "flarum/tags": "*",
+        "php-feed-io/feed-io": "^6.4",
+        "guzzlehttp/guzzle": "^7.9"
+    },
+    "require-dev": {
+        "flarum/testing": "^2.0",
+        "flarum/phpstan": "^2.0"
+    },
+    "authors": [
+        {
+            "name": "Stezkoy",
+            "email": "stezko@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Stezkoy\\Feed2forum\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Stezkoy\\Feed2forum\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "flarum-extension": {
+            "title": "Feed2Forum",
+            "category": "feature",
+            "icon": {
+                "name": "fas fa-rss-square",
+                "backgroundColor": "#00a185",
+                "color": "#fff"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}

@@ -1,0 +1,61 @@
+stezkoy-feed2forum:
+  admin:
+    settings:
+      general_heading: Общие настройки
+      general_help: Глобальные настройки, применяемые ко всем лентам.
+      author_label: Автор
+      author_help: Темы, созданные из статей ленты, будут иметь этого автора.
+      author_change_tooltip: Сменить автора
+      author_unbind_tooltip: Отвязать автора
+      author_select_button: Выбрать автора
+      author_select_title: Выбор автора
+      fetch_interval_label: Частота проверки
+      fetch_interval_help: Как часто фетчер лент запускается через планировщик задач.
+      interval_minutely: Каждую минуту
+      interval_hourly: Каждый час
+      interval_daily: Каждый день
+      interval_weekly: Каждую неделю
+      publish_mode_label: Ручное подтверждение публикации
+      publish_mode_help: Если включено, статьи не публикуются автоматически — каждая одобряется вручную.
+      show_source_link_label: Добавлять ссылки на оригинал
+      show_source_link_help: Если включено, ссылка на оригинальную статью добавляется в конец каждой темы.
+      queue_heading: Очередь на одобрение
+      queue_heading_feed: Лента
+      queue_heading_title: Заголовок
+      queue_heading_published: Опубликовано
+      queue_heading_actions: Действия
+      queue_publish: Опубликовать
+      queue_queued: Статья добавлена в очередь публикации. Тема появится после обработки воркером очереди.
+      queue_delete_tooltip: Удалить статью
+      queue_delete_confirmation: Удалить статью без публикации?
+      queue_empty: Ожидающих одобрения статей нет.
+      queue_hint: Нажмите «Опубликовать», чтобы создать тему из статьи.
+      queue_load_error: Не удалось загрузить очередь.
+      queue_publish_error: Не удалось опубликовать статью.
+      queue_delete_error: Не удалось удалить статью.
+      feeds_heading: Ленты
+      feeds_heading_title: Название
+      feeds_heading_url: URL
+      feeds_heading_tag: Тег
+      feeds_heading_limit: Лимит публикаций
+      feeds_heading_status: Статус
+      feeds_heading_actions: Действия
+      feeds_hint: Каждая строка редактируется и сохраняется при потере фокуса. Приостановленные ленты пропускаются при загрузке.
+      feeds_delete_tooltip: Удалить ленту
+      feeds_delete_confirmation: Удалить ленту? Импортированные темы сохранятся, но сама лента и её неопубликованные статьи будут удалены.
+      feed_update_error: Не удалось сохранить ленту.
+      feed_delete_error: Не удалось удалить ленту.
+      tag_none: Без тега
+      new_feed_title: Название новой ленты
+      new_feed_url: https://example.com/feed.xml
+      new_feed_add: Добавить ленту
+      new_feed_error: Не удалось добавить ленту.
+      new_feed_url_invalid: URL должен начинаться с http:// или https://.
+      preview_tooltip: Предпросмотр
+      preview_title: '{title} — предпросмотр'
+      preview_close: Закрыть
+      preview_empty: В ленте пока нет статей.
+      preview_error: Не удалось загрузить предпросмотр ленты.
+      load_error: Не удалось загрузить ленты.
+  forum:
+    original_article_link: Оригинальная статья

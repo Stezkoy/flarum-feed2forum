@@ -1,0 +1,30 @@
+<?php
+
+namespace Stezkoy\Feed2forum;
+
+use Flarum\Extend;
+use Stezkoy\Feed2forum\Api\Resource\FeedResource;
+use Stezkoy\Feed2forum\Api\Resource\ItemResource;
+use Stezkoy\Feed2forum\Console\FetchFeeds;
+use Stezkoy\Feed2forum\Console\FeedFetchSchedule;
+
+return [
+    (new Extend\Frontend('admin'))
+        ->js(__DIR__ . '/js/dist/admin.js')
+        ->css(__DIR__ . '/less/admin.less'),
+
+    new Extend\Locales(__DIR__ . '/locale'),
+
+    new Extend\ApiResource(FeedResource::class),
+    new Extend\ApiResource(ItemResource::class),
+
+    (new Extend\Settings())
+        ->default('stezkoy-feed2forum.author_user_id', '')
+        ->default('stezkoy-feed2forum.fetch_interval', 'hourly')
+        ->default('stezkoy-feed2forum.publish_mode', 'auto')
+        ->default('stezkoy-feed2forum.show_source_link', true),
+
+    (new Extend\Console())
+        ->command(FetchFeeds::class)
+        ->schedule('feed2forum:fetch', FeedFetchSchedule::class),
+];

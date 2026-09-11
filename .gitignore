@@ -1,0 +1,25 @@
+# Dependencies
+/vendor/
+js/node_modules/*
+composer.lock
+
+# Yarn 4 state (patches/plugins/releases/sdks/versions stay tracked)
+js/.yarn/*
+js/.pnp.cjs
+js/.pnp.loader.mjs
+
+# Build artifacts
+js/dist-typings/
+
+# Testing
+.phpunit.result.cache
+tests/integration/tmp/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / editor junk
+.DS_Store
+Thumbs.db

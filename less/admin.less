@@ -1,0 +1,150 @@
+.Feed2forumSettings {
+  background: var(--control-bg);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 4px var(--shadow-color);
+  margin: 0 auto;
+
+  .Form-group {
+    margin: 0;
+  }
+
+  &-section {
+    background: var(--body-bg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 1px 3px var(--shadow-color);
+    padding: 20px;
+    margin-bottom: 20px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    h3 {
+      margin: 0 0 14px;
+      color: var(--primary-color);
+      font-size: 15px;
+      font-weight: 700;
+    }
+  }
+
+  &-sectionBody {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .Form-controls {
+    margin-top: 4px;
+  }
+}
+
+.Feed2forumAuthorControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .Button--icon {
+    color: var(--muted-color);
+  }
+}
+
+.Feed2forumAuthorButton {
+  padding: 3px 4px;
+  height: 34px;
+
+  .Avatar {
+    width: 26px;
+    height: 26px;
+    display: block;
+    border-radius: var(--border-radius);
+  }
+}
+
+.Feed2forumAuthorAvatar {
+  display: block;
+  border-radius: var(--border-radius);
+}
+
+.Feed2forumTable {
+  width: 100%;
+  display: table;
+
+  &-row {
+    display: table-row;
+
+    &--head {
+      .Feed2forumTable-cell {
+        font-size: 12px;
+        font-weight: bold;
+        color: var(--muted-more-color);
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+    }
+
+    &--new {
+      .Feed2forumTable-cell {
+        border-top: 1px solid var(--control-bg);
+        padding-top: 12px;
+      }
+    }
+  }
+
+  &-cell {
+    display: table-cell;
+    vertical-align: middle;
+    padding: 6px 8px;
+    min-width: 90px;
+
+    &--grow {
+      min-width: 180px;
+      width: auto;
+
+      input {
+        width: 100%;
+      }
+    }
+  }
+
+  &-actions {
+    display: table-cell;
+    white-space: nowrap;
+    width: 1%;
+    padding-right: 0;
+    text-align: right;
+
+    .Button {
+      margin-left: 4px;
+    }
+  }
+}
+
+.Feed2forumPreviewList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.Feed2forumPreviewItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--control-bg);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &-title {
+    font-weight: bold;
+  }
+
+  &-date {
+    color: var(--muted-color);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+}
