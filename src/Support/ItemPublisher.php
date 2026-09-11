@@ -107,20 +107,26 @@ class ItemPublisher
 
     private function assignFeedTag(Discussion $discussion, Item $item): void
     {
-        $tagId = (int) ($item->feed?->tag_id ?? 0);
+        $feed = $item->feed;
 
-        if ($tagId <= 0 || ! class_exists(Tag::class)) {
+        if (! $feed || (! $feed->tag_id && ! $feed->secondary_tag_id) || ! class_exists(Tag::class)) {
             return;
         }
 
-        $tag = Tag::query()->with('parent')->whereKey($tagId)->first();
+        $tags = Tag::query()
+            ->with('parent')
+            ->whereIn('id', array_filter([(int) $feed->tag_id, (int) $feed->secondary_tag_id]))
+            ->get();
 
-        if (! $tag) {
+        if ($tags->isEmpty()) {
             return;
         }
 
-        $tags = $this->tagsWithAncestors($tag);
-        $tagIds = $tags->filter()->pluck('id')->values()->all();
+        $tags = $tags
+            ->flatMap(fn (Tag $tag) => $this->tagsWithAncestors($tag))
+            ->unique(fn (Tag $tag) => $tag->id)
+            ->values();
+        $tagIds = $tags->pluck('id')->all();
 
         if (! $tagIds) {
             return;
@@ -132,7 +138,7 @@ class ItemPublisher
             return;
         }
 
-        $discussion->setRelation('tags', $tags->filter()->values());
+        $discussion->setRelation('tags', $tags);
     }
 
     private function tagsWithAncestors(Tag $tag): EloquentCollection

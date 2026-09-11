@@ -10,7 +10,7 @@ A Flarum 2.x extension that turns RSS/Atom feeds into **real forum discussions**
 
 - Fetch RSS/Atom sources on a schedule and turn every new article into an **immediate, real Flarum discussion** (no virtual pages, no lazy conversion).
 - Use one **global author user** for all imported discussions, configured once in the admin panel.
-- Bind a **tag to each feed** — imported discussions are posted with that tag automatically. Uses the standard Flarum tag selection dialog.
+- Bind **up to two tags to each feed** (one primary + one secondary) — imported discussions are posted with those tags automatically. Uses the standard Flarum tag selection dialog.
 - Use the article's **publication date from the feed** as the discussion creation date.
 - Set a **per-feed publish limit**: only the N most recent new articles are published per fetch (0 = unlimited).
 - **Per-feed publish mode**: choose one of two options for each feed:
@@ -59,7 +59,7 @@ Open the **Feed2Forum** page in the admin panel.
 Each row of the **Feeds** table is edited in place and saved on blur:
 
 - **Title** and **URL** of the feed.
-- **Tag** — the tag imported discussions are posted with (opened via the standard tag dialog).
+- **Tag** — up to two tags (one primary + one secondary) imported discussions are posted with (opened via the standard tag dialog).
 - **Publish limit** — how many of the newest new articles are kept/published per fetch (leave empty for 5, set 0 for unlimited). In manual mode this also caps how many items land in the approval queue from a single fetch.
 - **Publishing** — per-feed mode: *Immediately* or *Manually* (approval queue).
 - **Status** — toggle to pause/resume the feed.

@@ -23,7 +23,7 @@ class FetchFeedJob extends AbstractJob
         try {
             $items = $fetcher->fetchFeed($this->feed);
         } catch (\Throwable $e) {
-            $logger->error('[Feed2Forum] Failed to fetch feed '.$this->feed->id.': '.$e->getMessage());
+            $logger->error('[Feed2Forum] Failed to fetch feed '.$this->feed->id.': '.$e::class.': '.$e->getMessage());
 
             return;
         }

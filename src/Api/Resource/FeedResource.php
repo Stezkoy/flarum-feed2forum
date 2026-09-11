@@ -2,26 +2,24 @@
 
 namespace Stezkoy\Feed2forum\Api\Resource;
 
-use FeedIo\Adapter\Http\Client as FeedIoHttpClient;
-use FeedIo\FeedIo;
 use Flarum\Api\Context as FlarumContext;
 use Flarum\Api\Endpoint;
 use Flarum\Api\Resource\AbstractDatabaseResource;
 use Flarum\Api\Schema;
 use Flarum\Foundation\ValidationException;
-use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
-use Psr\Log\NullLogger;
 use Stezkoy\Feed2forum\Job\FetchFeedJob;
 use Stezkoy\Feed2forum\Models\Feed;
+use Stezkoy\Feed2forum\Support\FeedFetcher;
 use Tobyz\JsonApiServer\Context;
 
 class FeedResource extends AbstractDatabaseResource
 {
     public function __construct(
-        protected Queue $queue
+        protected Queue $queue,
+        protected FeedFetcher $fetcher
     ) {
     }
 
@@ -104,6 +102,10 @@ class FeedResource extends AbstractDatabaseResource
                 ->nullable()
                 ->rule('exists:tags,id')
                 ->writable(),
+            Schema\Integer::make('secondary_tag_id')
+                ->nullable()
+                ->rule('exists:tags,id')
+                ->writable(),
             Schema\Integer::make('publish_limit')
                 ->nullable()
                 ->min(0)
@@ -129,7 +131,7 @@ class FeedResource extends AbstractDatabaseResource
         $feed = $context->model;
 
         try {
-            $result = $this->feedIo()->read($feed->url);
+            $result = $this->fetcher->feedIo()->read($feed->url);
             $items = [];
 
             foreach ($result->getFeed() as $item) {
@@ -164,19 +166,6 @@ class FeedResource extends AbstractDatabaseResource
                 ],
             ],
         ];
-    }
-
-    private function feedIo(): FeedIo
-    {
-        $guzzle = new GuzzleClient([
-            'timeout' => 15,
-            'connect_timeout' => 8,
-        ]);
-
-        return new FeedIo(
-            new FeedIoHttpClient($guzzle),
-            new NullLogger()
-        );
     }
 
     private function plainText(string $content, int $limit): string

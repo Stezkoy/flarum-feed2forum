@@ -25,6 +25,7 @@ export default class FeedSettingsPage extends ExtensionPage {
     this.fetching = {};
     this.checkingAll = false;
     this.queue = [];
+    this.tags = [];
 
     this.resetNewFeed();
 
@@ -36,8 +37,12 @@ export default class FeedSettingsPage extends ExtensionPage {
         m.redraw();
       });
 
-    app.store
-      .find('tags')
+    // Per the group docs: load the FULL tag list (incl. children) via
+    // app.tagList.load(['parent']) instead of relying on app.store.all('tags').
+    (app.tagList ? app.tagList.load(['parent']) : app.store.find('tags'))
+      .then((tags) => {
+        this.tags = tags || [];
+      })
       .catch(() => {})
       .finally(() => {
         this.loadingTags = false;
@@ -407,27 +412,41 @@ export default class FeedSettingsPage extends ExtensionPage {
       return m('button.Button.Button--icon', { disabled: true }, m(Icon, { name: 'fas fa-tag' }));
     }
 
-    const tag = feed.tagId() != null ? app.store.getById('tags', String(feed.tagId())) || null : null;
+    const selected = this.feedTags(feed);
 
     return m(
       Button,
       {
-        className: 'Button',
+        className: 'Button Feed2forumTagButton',
         onclick: () => {
           app.modal.show(() => import('ext:flarum/tags/common/components/TagSelectionModal'), {
             title: this.translate('tag_select_title'),
-            selectedTags: tag ? [tag] : [],
-            limits: { max: { total: 1, primary: 1, secondary: 1 } },
-            onsubmit: (selected) => {
-              const tagId = selected && selected.length ? selected[0].id() : null;
-              feed.pushAttributes({ tag_id: tagId });
-              if (feed.exists) this.updateFeed(feed, 'tag_id', tagId);
+            selectedTags: selected,
+            limits: { max: { total: 2, primary: 1, secondary: 1 } },
+            onsubmit: (tags) => {
+              const primary = tags[0] || null;
+              const secondary = tags[1] || null;
+              const attrs = {
+                tag_id: primary ? primary.id() : null,
+                secondary_tag_id: secondary ? secondary.id() : null,
+              };
+
+              feed.pushAttributes(attrs);
+
+              if (feed.exists) this.updateFeed(feed, attrs);
             },
           });
         },
       },
-      tag ? tagLabel(tag) : m('span.TextMuted', this.translate('tag_none'))
+      selected.length ? selected.map((tag) => tagLabel(tag)) : m('span.TextMuted', this.translate('tag_none'))
     );
+  }
+
+  feedTags(feed) {
+    return [feed.tagId(), feed.secondaryTagId()]
+      .filter((id) => id != null && id !== '')
+      .map((id) => this.tags.find((tag) => String(tag.id()) === String(id)))
+      .filter(Boolean);
   }
 
   publishModeSelect(feed) {
@@ -558,6 +577,7 @@ export default class FeedSettingsPage extends ExtensionPage {
         title: '',
         url: '',
         tag_id: null,
+        secondary_tag_id: null,
         publish_limit: 5,
         publish_mode: 'queue',
         status: 'active',
@@ -569,6 +589,7 @@ export default class FeedSettingsPage extends ExtensionPage {
     const title = this.newFeed.title() ? this.newFeed.title().trim() : '';
     const url = this.newFeed.url() ? this.newFeed.url().trim() : '';
     const tagId = this.newFeed.tagId();
+    const secondaryTagId = this.newFeed.secondaryTagId();
     const requestedLimit = Number(this.newFeed.publishLimit());
     const publishLimit = Number.isFinite(requestedLimit) && requestedLimit >= 0 ? requestedLimit : 5;
 
@@ -587,6 +608,7 @@ export default class FeedSettingsPage extends ExtensionPage {
         title,
         url,
         tag_id: tagId === '' || tagId === null || tagId === undefined ? null : Number(tagId),
+        secondary_tag_id: secondaryTagId === '' || secondaryTagId === null || secondaryTagId === undefined ? null : Number(secondaryTagId),
         publish_limit: publishLimit,
         publish_mode: this.newFeed.publishMode() || 'queue',
         status: this.newFeed.status() || 'active',
@@ -603,7 +625,9 @@ export default class FeedSettingsPage extends ExtensionPage {
   }
 
   updateFeed(feed, attribute, value) {
-    feed.save({ [attribute]: value }).catch(() => app.alerts.show({ type: 'error' }, this.translate('feed_update_error')));
+    const data = typeof attribute === 'object' && attribute !== null ? attribute : { [attribute]: value };
+
+    feed.save(data).catch(() => app.alerts.show({ type: 'error' }, this.translate('feed_update_error')));
   }
 
   toggleFeedStatus(feed) {

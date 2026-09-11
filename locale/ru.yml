@@ -55,7 +55,7 @@ stezkoy-feed2forum:
       feed_delete_error: Не удалось удалить ленту.
       tag_none: Без тега
       new_feed_title: Название новой ленты
-      new_feed_url: https://example.com/feed.xml
+      new_feed_url: "https://example.com/feed.xml"
       new_feed_add: Добавить ленту
       new_feed_error: Не удалось добавить ленту.
       new_feed_url_invalid: URL должен начинаться с http:// или https://.

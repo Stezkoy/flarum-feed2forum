@@ -55,7 +55,7 @@ stezkoy-feed2forum:
       feed_delete_error: Could not delete the feed.
       tag_none: No tag
       new_feed_title: New feed title
-      new_feed_url: https://example.com/feed.xml
+      new_feed_url: "https://example.com/feed.xml"
       new_feed_add: Add feed
       new_feed_error: Could not add the feed.
       new_feed_url_invalid: The URL must start with http:// or https://.

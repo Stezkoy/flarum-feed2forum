@@ -11,10 +11,11 @@ class Feed extends AbstractModel
 
     protected $table = 'feed2forum_feeds';
 
-    protected $fillable = ['url', 'title', 'tag_id', 'publish_limit', 'publish_mode', 'status'];
+    protected $fillable = ['url', 'title', 'tag_id', 'secondary_tag_id', 'publish_limit', 'publish_mode', 'status'];
 
     protected $casts = [
         'tag_id' => 'integer',
+        'secondary_tag_id' => 'integer',
         'publish_limit' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -23,6 +24,11 @@ class Feed extends AbstractModel
     public function tag()
     {
         return $this->belongsTo(Tag::class, 'tag_id');
+    }
+
+    public function secondaryTag()
+    {
+        return $this->belongsTo(Tag::class, 'secondary_tag_id');
     }
 
     public function items()

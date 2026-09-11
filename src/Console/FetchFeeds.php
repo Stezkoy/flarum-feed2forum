@@ -2,14 +2,11 @@
 
 namespace Stezkoy\Feed2forum\Console;
 
-use FeedIo\Adapter\Http\Client as FeedIoHttpClient;
-use FeedIo\FeedIo;
-use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Queue\Queue;
-use Psr\Log\NullLogger;
 use Stezkoy\Feed2forum\Job\FetchFeedJob;
 use Stezkoy\Feed2forum\Models\Feed;
+use Stezkoy\Feed2forum\Support\FeedFetcher;
 
 class FetchFeeds extends Command
 {
@@ -18,7 +15,8 @@ class FetchFeeds extends Command
     protected $description = 'Dispatch queue jobs to fetch RSS/Atom feeds and publish new items as discussions';
 
     public function __construct(
-        protected Queue $queue
+        protected Queue $queue,
+        protected FeedFetcher $fetcher
     ) {
         parent::__construct();
     }
@@ -54,7 +52,7 @@ class FetchFeeds extends Command
     protected function inspectUrl(string $url): void
     {
         try {
-            $result = $this->feedIo()->read($url);
+            $result = $this->fetcher->feedIo()->read($url);
 
             $this->info('Feed parsed successfully:');
 
@@ -64,18 +62,5 @@ class FetchFeeds extends Command
         } catch (\Throwable $e) {
             $this->error("Failed to fetch feed {$url}: {$e->getMessage()}");
         }
-    }
-
-    protected function feedIo(): FeedIo
-    {
-        $guzzle = new GuzzleClient([
-            'timeout' => 15,
-            'connect_timeout' => 8,
-        ]);
-
-        return new FeedIo(
-            new FeedIoHttpClient($guzzle),
-            new NullLogger()
-        );
     }
 }

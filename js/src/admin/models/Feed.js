@@ -13,6 +13,10 @@ export default class Feed extends Model {
     return Model.attribute('tag_id').call(this);
   }
 
+  secondaryTagId() {
+    return Model.attribute('secondary_tag_id').call(this);
+  }
+
   publishLimit() {
     return Model.attribute('publish_limit').call(this);
   }
