@@ -38,10 +38,10 @@ class FetchFeedJob extends AbstractJob
         }
 
         $logger->info('[Feed2Forum] Feed '.$this->feed->id.': '.count($items).' new item(s).');
-
-        if (count($items) > 0) {
-            WorkLog::info('Fetched "'.$this->feed->title.'": '.count($items).' new item(s).', $this->feed->id);
-        }
+        WorkLog::info(
+            'Checked "'.$this->feed->title.'": '.(count($items) > 0 ? count($items).' new item(s).' : 'no new items.'),
+            $this->feed->id
+        );
 
         if ((string) $this->feed->publish_mode !== 'auto') {
             return;
