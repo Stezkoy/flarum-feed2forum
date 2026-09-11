@@ -86,6 +86,16 @@ export default class FeedSettingsPage extends ExtensionPage {
     return app.translator.trans(`${PREFIX}.admin.settings.${key}`, vars);
   }
 
+  // Avoid the Chrome "Blocked aria-hidden on an element because its
+  // descendant retained focus" warning when a modal opens.
+  openModal(loader, attrs) {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    app.modal.show(loader, attrs);
+  }
+
   authorSetting() {
     const key = `${PREFIX}.author_user_id`;
     const stream = this.setting(key, '');
@@ -134,7 +144,7 @@ export default class FeedSettingsPage extends ExtensionPage {
   }
 
   selectAuthor(stream) {
-    app.modal.show(UserSelectionModal, {
+    this.openModal(UserSelectionModal, {
       title: this.translate('author_select_title'),
       selected: [],
       maxItems: 1,
@@ -519,7 +529,7 @@ export default class FeedSettingsPage extends ExtensionPage {
           className: 'Button Button--icon',
           icon: 'fas fa-eye',
           title: this.translate('preview_tooltip'),
-          onclick: () => app.modal.show(FeedPreviewModal, { feed }),
+          onclick: () => this.openModal(FeedPreviewModal, { feed }),
         }),
         m(Button, {
           className: 'Button Button--icon',
@@ -543,7 +553,7 @@ export default class FeedSettingsPage extends ExtensionPage {
       {
         className: 'Button Feed2forumTagButton',
         onclick: () => {
-          app.modal.show(() => import('ext:flarum/tags/common/components/TagSelectionModal'), {
+          this.openModal(() => import('ext:flarum/tags/common/components/TagSelectionModal'), {
             title: this.translate('tag_select_title'),
             selectedTags: selected,
             limits: { max: { total: 2, primary: 1, secondary: 1 } },
