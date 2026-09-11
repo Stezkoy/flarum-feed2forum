@@ -8,15 +8,14 @@ use Flarum\Api\Resource\AbstractDatabaseResource;
 use Flarum\Api\Schema;
 use Flarum\Http\RequestUtil;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Contracts\Queue\Queue;
-use Stezkoy\Feed2forum\Job\PublishItemJob;
 use Stezkoy\Feed2forum\Models\Item;
+use Stezkoy\Feed2forum\Support\ItemPublisher;
 use Tobyz\JsonApiServer\Context;
 
 class ItemResource extends AbstractDatabaseResource
 {
     public function __construct(
-        protected Queue $queue
+        protected ItemPublisher $publisher
     ) {
     }
 
@@ -62,6 +61,14 @@ class ItemResource extends AbstractDatabaseResource
                 ->route('POST', '/{id}/publish')
                 ->admin()
                 ->action(fn (FlarumContext $context) => $this->publish($context)),
+            Endpoint\Endpoint::make('clearQueue')
+                ->route('POST', '/clear')
+                ->admin()
+                ->action(function (): array {
+                    Item::query()->where('status', 'pending')->delete();
+
+                    return ['data' => ['type' => 'feed2forum-items', 'id' => 'cleared']];
+                }),
         ];
     }
 
@@ -86,7 +93,7 @@ class ItemResource extends AbstractDatabaseResource
     {
         $item = $context->model;
 
-        $this->queue->push(new PublishItemJob($item));
+        $this->publisher->publish($item);
 
         return $item->refresh();
     }

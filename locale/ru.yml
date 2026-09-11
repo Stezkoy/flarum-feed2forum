@@ -19,7 +19,13 @@ stezkoy-feed2forum:
       queue_heading_published: Опубликовано
       queue_heading_actions: Действия
       queue_publish: Опубликовать
+      queue_published: Тема создана. Статья удалена из очереди.
       queue_queued: Статья добавлена в очередь публикации. Тема появится после обработки воркером очереди.
+      queue_clear: Очистить очередь
+      queue_clear_confirmation: Удалить все ожидающие статьи из очереди? Темы для них созданы не будут.
+      queue_clear_success: Очередь на одобрение очищена.
+      queue_clear_error: Не удалось очистить очередь.
+      queue_count: 'Статей в очереди: {count}'
       queue_delete_tooltip: Удалить статью
       queue_delete_confirmation: Удалить статью без публикации?
       queue_empty: Ожидающих одобрения статей нет.

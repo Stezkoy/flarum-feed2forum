@@ -69,7 +69,7 @@ Add new feeds via the blank row at the bottom of the table.
 
 ### Approval queue
 
-Feeds in *Manually* mode place their new articles here: publish any of them with one click, or delete them.
+Feeds in *Manually* mode place their new articles here: publish any of them with one click (the discussion is created immediately and the item leaves the queue), delete them, or clear the whole queue at once.
 
 ## Fetching Feeds
 

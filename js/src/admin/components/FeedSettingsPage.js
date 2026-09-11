@@ -219,14 +219,32 @@ export default class FeedSettingsPage extends ExtensionPage {
         url: `${app.forum.attribute('apiUrl')}/feed2forum-items/${id}/publish`,
       })
       .then(() => {
-        app.alerts.show({ type: 'success' }, this.translate('queue_queued'));
+        app.alerts.show({ type: 'success' }, this.translate('queue_published'));
         this.loadQueue();
       })
-      .catch(() => app.alerts.show({ type: 'error' }, this.translate('queue_publish_error')))
+      .catch((error) => {
+        const detail = error?.response?.errors?.[0]?.detail;
+        app.alerts.show({ type: 'error' }, detail || this.translate('queue_publish_error'));
+      })
       .finally(() => {
         delete this.publishing[id];
         m.redraw();
       });
+  }
+
+  clearQueue() {
+    if (!confirm(this.translate('queue_clear_confirmation'))) return;
+
+    app
+      .request({
+        method: 'POST',
+        url: `${app.forum.attribute('apiUrl')}/feed2forum-items/clear`,
+      })
+      .then(() => {
+        app.alerts.show({ type: 'success' }, this.translate('queue_clear_success'));
+        this.loadQueue();
+      })
+      .catch(() => app.alerts.show({ type: 'error' }, this.translate('queue_clear_error')));
   }
 
   deleteItem(id) {
@@ -249,6 +267,18 @@ export default class FeedSettingsPage extends ExtensionPage {
     }
 
     return [
+      m('.Feed2forumQueueToolbar', [
+        m('span', m('strong', this.translate('queue_count', { count: this.queue.length }))),
+        m(
+          Button,
+          {
+            className: 'Button Button--danger',
+            icon: 'fas fa-broom',
+            onclick: () => this.clearQueue(),
+          },
+          this.translate('queue_clear')
+        ),
+      ]),
       m('.Feed2forumTable.Feed2forumTable--queue', [
         m('.Feed2forumTable-row.Feed2forumTable-row--head', [
           m('.Feed2forumTable-cell', this.translate('queue_heading_feed')),
