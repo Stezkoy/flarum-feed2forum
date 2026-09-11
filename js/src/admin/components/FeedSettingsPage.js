@@ -12,7 +12,7 @@ import FeedPreviewModal from './FeedPreviewModal';
 
 const PREFIX = 'stezkoy-feed2forum';
 
-export default class Feed2forumSettingsPage extends ExtensionPage {
+export default class FeedSettingsPage extends ExtensionPage {
   oninit(vnode) {
     super.oninit(vnode);
 
