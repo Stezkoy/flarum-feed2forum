@@ -2,6 +2,6 @@
 
 use Flarum\Database\Migration;
 
-return Migration::alter('feed2forum_feeds', function (Illuminate\Database\Schema\Blueprint $table) {
-    $table->string('publish_mode')->default('queue');
-});
+return Migration::addColumns('feed2forum_feeds', [
+    'publish_mode' => ['string', 'default' => 'queue'],
+]);
