@@ -3,7 +3,6 @@
 namespace Stezkoy\Feed2forum\Job;
 
 use Flarum\Queue\AbstractJob;
-use Flarum\Settings\SettingsRepositoryInterface;
 use Illuminate\Contracts\Queue\Queue;
 use Psr\Log\LoggerInterface;
 use Stezkoy\Feed2forum\Models\Feed;
@@ -19,7 +18,6 @@ class FetchFeedJob extends AbstractJob
     public function handle(
         Queue $queue,
         FeedFetcher $fetcher,
-        SettingsRepositoryInterface $settings,
         LoggerInterface $logger
     ): void {
         try {
@@ -36,7 +34,7 @@ class FetchFeedJob extends AbstractJob
 
         $logger->info('[Feed2Forum] Feed '.$this->feed->id.': '.count($items).' new item(s).');
 
-        if ((string) $settings->get('stezkoy-feed2forum.publish_mode', 'auto') !== 'auto') {
+        if ((string) $this->feed->publish_mode !== 'auto') {
             return;
         }
 

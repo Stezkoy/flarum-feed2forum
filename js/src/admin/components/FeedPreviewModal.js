@@ -45,10 +45,14 @@ export default class FeedPreviewModal extends Modal {
       return m('.Modal-body', [
         m('p', app.translator.trans(`${PREFIX}.admin.settings.preview_error`)),
         m('.Form-group.Form-controls', [
-          m(Button, {
-            className: 'Button Button--primary',
-            onclick: () => this.hide(),
-          }, app.translator.trans(`${PREFIX}.admin.settings.preview_close`)),
+          m(
+            Button,
+            {
+              className: 'Button Button--primary',
+              onclick: () => this.hide(),
+            },
+            app.translator.trans(`${PREFIX}.admin.settings.preview_close`)
+          ),
         ]),
       ]);
     }
@@ -61,10 +65,14 @@ export default class FeedPreviewModal extends Modal {
       return m('.Modal-body', [
         m('p', app.translator.trans(`${PREFIX}.admin.settings.preview_empty`)),
         m('.Form-group.Form-controls', [
-          m(Button, {
-            className: 'Button Button--primary',
-            onclick: () => this.hide(),
-          }, app.translator.trans(`${PREFIX}.admin.settings.preview_close`)),
+          m(
+            Button,
+            {
+              className: 'Button Button--primary',
+              onclick: () => this.hide(),
+            },
+            app.translator.trans(`${PREFIX}.admin.settings.preview_close`)
+          ),
         ]),
       ]);
     }
@@ -81,10 +89,14 @@ export default class FeedPreviewModal extends Modal {
         ),
       ]),
       m('.Form-group.Form-controls', [
-        m(Button, {
-          className: 'Button Button--primary',
-          onclick: () => this.hide(),
-        }, app.translator.trans(`${PREFIX}.admin.settings.preview_close`)),
+        m(
+          Button,
+          {
+            className: 'Button Button--primary',
+            onclick: () => this.hide(),
+          },
+          app.translator.trans(`${PREFIX}.admin.settings.preview_close`)
+        ),
       ]),
     ]);
   }

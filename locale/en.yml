@@ -9,14 +9,8 @@ stezkoy-feed2forum:
       author_unbind_tooltip: Unbind author
       author_select_button: Select author
       author_select_title: Select author
-      fetch_interval_label: Check frequency
-      fetch_interval_help: How often the feed fetcher runs via scheduled tasks.
-      interval_minutely: Every minute
-      interval_hourly: Every hour
-      interval_daily: Every day
-      interval_weekly: Every week
-      publish_mode_label: Manual approval queue
-      publish_mode_help: When enabled, fetched items are not published automatically; you approve each one manually.
+      fetch_interval_label: Check frequency (minutes)
+      fetch_interval_help: How often the scheduler runs feed fetches. Defaults to 60.
       show_source_link_label: Add links to original articles
       show_source_link_help: When enabled, a link to the original article is added at the end of each discussion.
       queue_heading: Approval queue
@@ -38,8 +32,16 @@ stezkoy-feed2forum:
       feeds_heading_url: URL
       feeds_heading_tag: Tag
       feeds_heading_limit: Publish limit
+      feeds_heading_mode: Publishing
       feeds_heading_status: Status
       feeds_heading_actions: Actions
+      publish_mode_auto: Immediately
+      publish_mode_queue: Manually
+      check_all: Check all feeds now
+      check_all_success: Fetch jobs have been queued.
+      fetch_tooltip: Fetch this feed now
+      fetch_error: Could not trigger the feed fetch.
+      tag_select_title: Choose tag
       feeds_hint: Each row can be edited and is saved on blur. Paused feeds are skipped when fetching.
       feeds_delete_tooltip: Delete feed
       feeds_delete_confirmation: Delete this feed? Imported items will be kept, but the feed itself and its pending items are removed.

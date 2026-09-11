@@ -10,14 +10,21 @@ use Flarum\Api\Resource\AbstractDatabaseResource;
 use Flarum\Api\Schema;
 use Flarum\Foundation\ValidationException;
 use GuzzleHttp\Client as GuzzleClient;
+use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Psr\Log\NullLogger;
+use Stezkoy\Feed2forum\Job\FetchFeedJob;
 use Stezkoy\Feed2forum\Models\Feed;
 use Tobyz\JsonApiServer\Context;
 
 class FeedResource extends AbstractDatabaseResource
 {
+    public function __construct(
+        protected Queue $queue
+    ) {
+    }
+
     public function type(): string
     {
         return 'feed2forum-feeds';
@@ -60,6 +67,24 @@ class FeedResource extends AbstractDatabaseResource
                 ->route('GET', '/{id}/preview')
                 ->admin()
                 ->action(fn (FlarumContext $context): array => $this->preview($context)),
+            Endpoint\Endpoint::make('fetch')
+                ->route('POST', '/{id}/fetch')
+                ->admin()
+                ->action(function (FlarumContext $context): array {
+                    $this->queue->push(new FetchFeedJob($context->model));
+
+                    return ['data' => ['type' => 'feed2forum-feeds', 'id' => (string) $context->model->id]];
+                }),
+            Endpoint\Endpoint::make('fetchAll')
+                ->route('POST', '/fetch-all')
+                ->admin()
+                ->action(function (): array {
+                    foreach (Feed::where('status', 'active')->get() as $feed) {
+                        $this->queue->push(new FetchFeedJob($feed));
+                    }
+
+                    return ['data' => ['type' => 'feed2forum-feeds', 'id' => 'all']];
+                }),
         ];
     }
 
@@ -83,6 +108,10 @@ class FeedResource extends AbstractDatabaseResource
                 ->nullable()
                 ->min(0)
                 ->default(5)
+                ->writable(),
+            Schema\Str::make('publish_mode')
+                ->default('queue')
+                ->in(['queue', 'auto'])
                 ->writable(),
             Schema\Str::make('status')
                 ->default('active')

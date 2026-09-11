@@ -11,7 +11,7 @@ class Feed extends AbstractModel
 
     protected $table = 'feed2forum_feeds';
 
-    protected $fillable = ['url', 'title', 'tag_id', 'publish_limit', 'status'];
+    protected $fillable = ['url', 'title', 'tag_id', 'publish_limit', 'publish_mode', 'status'];
 
     protected $casts = [
         'tag_id' => 'integer',

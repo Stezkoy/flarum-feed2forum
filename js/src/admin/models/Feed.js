@@ -17,6 +17,10 @@ export default class Feed extends Model {
     return Model.attribute('publish_limit').call(this);
   }
 
+  publishMode() {
+    return Model.attribute('publish_mode').call(this);
+  }
+
   status() {
     return Model.attribute('status').call(this);
   }

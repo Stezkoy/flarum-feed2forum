@@ -28,8 +28,7 @@ return [
 
     (new Extend\Settings())
         ->default('stezkoy-feed2forum.author_user_id', '')
-        ->default('stezkoy-feed2forum.fetch_interval', 'hourly')
-        ->default('stezkoy-feed2forum.publish_mode', 'auto')
+        ->default('stezkoy-feed2forum.fetch_interval', 60)
         ->default('stezkoy-feed2forum.show_source_link', true),
 
     (new Extend\Console())

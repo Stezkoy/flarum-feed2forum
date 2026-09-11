@@ -67,7 +67,7 @@ class FeedFetcher
 
     protected function entryGuid(\FeedIo\Feed\Item $entry): string
     {
-        $guid = trim((string) $entry->getId());
+        $guid = trim((string) $entry->getPublicId());
         $link = trim((string) $entry->getLink());
 
         if ($guid !== '') {

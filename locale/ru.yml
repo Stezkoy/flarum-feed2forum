@@ -9,14 +9,8 @@ stezkoy-feed2forum:
       author_unbind_tooltip: Отвязать автора
       author_select_button: Выбрать автора
       author_select_title: Выбор автора
-      fetch_interval_label: Частота проверки
-      fetch_interval_help: Как часто фетчер лент запускается через планировщик задач.
-      interval_minutely: Каждую минуту
-      interval_hourly: Каждый час
-      interval_daily: Каждый день
-      interval_weekly: Каждую неделю
-      publish_mode_label: Ручное подтверждение публикации
-      publish_mode_help: Если включено, статьи не публикуются автоматически — каждая одобряется вручную.
+      fetch_interval_label: Частота проверки (минуты)
+      fetch_interval_help: Как часто планировщик задач запускает загрузку лент. По умолчанию 60.
       show_source_link_label: Добавлять ссылки на оригинал
       show_source_link_help: Если включено, ссылка на оригинальную статью добавляется в конец каждой темы.
       queue_heading: Очередь на одобрение
@@ -38,8 +32,16 @@ stezkoy-feed2forum:
       feeds_heading_url: URL
       feeds_heading_tag: Тег
       feeds_heading_limit: Лимит публикаций
+      feeds_heading_mode: Публикация
       feeds_heading_status: Статус
       feeds_heading_actions: Действия
+      publish_mode_auto: Авто
+      publish_mode_queue: Вручную
+      check_all: Проверить все ленты сейчас
+      check_all_success: Задачи загрузки добавлены в очередь.
+      fetch_tooltip: Проверить ленту сейчас
+      fetch_error: Не удалось запустить проверку ленты.
+      tag_select_title: Выбор тега
       feeds_hint: Каждая строка редактируется и сохраняется при потере фокуса. Приостановленные ленты пропускаются при загрузке.
       feeds_delete_tooltip: Удалить ленту
       feeds_delete_confirmation: Удалить ленту? Импортированные темы сохранятся, но сама лента и её неопубликованные статьи будут удалены.

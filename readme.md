@@ -10,12 +10,14 @@ A Flarum 2.x extension that turns RSS/Atom feeds into **real forum discussions**
 
 - Fetch RSS/Atom sources on a schedule and turn every new article into an **immediate, real Flarum discussion** (no virtual pages, no lazy conversion).
 - Use one **global author user** for all imported discussions, configured once in the admin panel.
-- Bind a **tag to each feed** — imported discussions are posted with that tag automatically.
+- Bind a **tag to each feed** — imported discussions are posted with that tag automatically. Uses the standard Flarum tag selection dialog.
 - Use the article's **publication date from the feed** as the discussion creation date.
 - Set a **per-feed publish limit**: only the N most recent new articles are published per fetch (0 = unlimited).
-- Two publishing modes:
+- **Per-feed publish mode**: choose one of two options for each feed:
   - **Auto** — new articles are published right away.
   - **Manual approval queue** — articles wait in a queue in the admin panel until you publish each one with one click.
+- Set the **check frequency in minutes** (default 60) applied through Flarum's scheduler.
+- **Fetch Now** button for each feed and a global **Check all feeds now** button to trigger manual fetch at any time.
 - Add a **link to the original article** at the top of every imported post (can be disabled globally).
 - Preview a feed in the admin panel by fetching it live.
 - Deduplicate articles by their GUID/link so nothing is imported twice; feed titles, contents and dates are updated on re-fetch.
@@ -49,8 +51,7 @@ Open the **Feed2Forum** page in the admin panel.
 ### General settings
 
 - **Author** — the user who authors imported discussions. Select any user; removal/change is supported.
-- **Check frequency** — how often feeds are fetched through the Flarum scheduler (every minute / hour / day / week).
-- **Manual approval queue** — when on, fetched articles are not published automatically; approve them one by one in the queue below.
+- **Check frequency (minutes)** — how often feeds are fetched through the Flarum scheduler (default 60 minutes).
 - **Add links to original articles** — show or hide the "Original article" link at the top of each imported post (on by default).
 
 ### Feeds
@@ -58,16 +59,17 @@ Open the **Feed2Forum** page in the admin panel.
 Each row of the **Feeds** table is edited in place and saved on blur:
 
 - **Title** and **URL** of the feed.
-- **Tag** — the tag imported discussions are posted with.
+- **Tag** — the tag imported discussions are posted with (opened via the standard tag dialog).
 - **Publish limit** — how many of the newest new articles are published per fetch (leave empty for 5, set 0 for unlimited).
+- **Publishing** — per-feed mode: *Immediately* or *Manually* (approval queue).
 - **Status** — toggle to pause/resume the feed.
-- Actions — **Preview** (fetch the feed live) and **Delete**.
+- Actions — **Fetch now**, **Preview** (fetch the feed live) and **Delete**.
 
 Add new feeds via the blank row at the bottom of the table.
 
 ### Approval queue
 
-When the approval queue is enabled, new articles appear here: publish any of them with one click, or delete them.
+Feeds in *Manually* mode place their new articles here: publish any of them with one click, or delete them.
 
 ## Fetching Feeds
 
