@@ -8,7 +8,6 @@ import Icon from 'flarum/common/components/Icon';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import UserSelectionModal from 'flarum/common/components/UserSelectionModal';
 import withAttr from 'flarum/common/utils/withAttr';
-import TagSelectionModal from 'ext:flarum/tags/common/components/TagSelectionModal';
 import tagLabel from 'ext:flarum/tags/common/helpers/tagLabel';
 import FeedPreviewModal from './FeedPreviewModal';
 
@@ -164,7 +163,7 @@ export default class FeedSettingsPage extends ExtensionPage {
         {
           state,
           onchange: (value) => {
-            stream(value ? '1' : '');
+            stream(value ? '1' : '0');
             m.redraw();
           },
         },
@@ -385,7 +384,7 @@ export default class FeedSettingsPage extends ExtensionPage {
       {
         className: 'Button',
         onclick: () => {
-          app.modal.show(TagSelectionModal, {
+          app.modal.show(() => import('ext:flarum/tags/common/components/TagSelectionModal'), {
             title: this.translate('tag_select_title'),
             selectedTags: tag ? [tag] : [],
             limits: { max: { total: 1, primary: 1, secondary: 1 } },

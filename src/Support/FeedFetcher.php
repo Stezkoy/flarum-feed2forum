@@ -49,7 +49,38 @@ class FeedFetcher
             $newItems[] = Item::create(array_merge($payload, ['status' => 'pending']));
         }
 
-        return $newItems;
+        return $this->applyPublishLimit($feed, $newItems);
+    }
+
+    /**
+     * Keep only the publish_limit newest new items in the queue; the rest are
+     * stored as "skipped" so the list does not overflow and older items are
+     * not re-detected as new on the next fetch.
+     *
+     * @param  Item[]  $items
+     * @return Item[]
+     */
+    private function applyPublishLimit(Feed $feed, array $items): array
+    {
+        $limit = max(0, (int) $feed->publish_limit);
+
+        if ($limit <= 0 || count($items) <= $limit) {
+            return $items;
+        }
+
+        usort(
+            $items,
+            fn (Item $a, Item $b): int => $b->published_at?->timestamp ?? 0 <=> $a->published_at?->timestamp ?? 0
+        );
+
+        $kept = array_slice($items, 0, $limit);
+
+        foreach (array_slice($items, $limit) as $item) {
+            $item->status = 'skipped';
+            $item->save();
+        }
+
+        return $kept;
     }
 
     public function feedIo(): FeedIo

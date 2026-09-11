@@ -60,7 +60,7 @@ Each row of the **Feeds** table is edited in place and saved on blur:
 
 - **Title** and **URL** of the feed.
 - **Tag** — the tag imported discussions are posted with (opened via the standard tag dialog).
-- **Publish limit** — how many of the newest new articles are published per fetch (leave empty for 5, set 0 for unlimited).
+- **Publish limit** — how many of the newest new articles are kept/published per fetch (leave empty for 5, set 0 for unlimited). In manual mode this also caps how many items land in the approval queue from a single fetch.
 - **Publishing** — per-feed mode: *Immediately* or *Manually* (approval queue).
 - **Status** — toggle to pause/resume the feed.
 - Actions — **Fetch now**, **Preview** (fetch the feed live) and **Delete**.

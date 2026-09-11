@@ -12,7 +12,7 @@ stezkoy-feed2forum:
       fetch_interval_label: Check frequency (minutes)
       fetch_interval_help: How often the scheduler runs feed fetches. Defaults to 60.
       show_source_link_label: Add links to original articles
-      show_source_link_help: When enabled, a link to the original article is added at the end of each discussion.
+      show_source_link_help: When enabled, a link to the original article is added at the beginning of each discussion.
       queue_heading: Approval queue
       queue_heading_feed: Feed
       queue_heading_title: Title
@@ -23,7 +23,7 @@ stezkoy-feed2forum:
       queue_delete_tooltip: Delete item
       queue_delete_confirmation: Delete this item without publishing it?
       queue_empty: There are no items waiting for approval.
-      queue_hint: Press Publish to create a discussion from the item.
+      queue_hint: Press Publish to create a discussion from the item. Only the newest items within each feed's publish limit end up in this queue.
       queue_load_error: Could not load the approval queue.
       queue_publish_error: Could not publish the item.
       queue_delete_error: Could not delete the item.
