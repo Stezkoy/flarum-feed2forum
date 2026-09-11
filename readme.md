@@ -21,7 +21,7 @@ A Flarum 2.x extension that turns RSS/Atom feeds into **real forum discussions**
 - Add a **link to the original article** at the top of every imported post (can be disabled globally).
 - Preview a feed in the admin panel by fetching it live.
 - Deduplicate articles by their GUID/link so nothing is imported twice; feed titles, contents and dates are updated on re-fetch.
-- **Self-repair**: if a published discussion is deleted from the forum, its item is automatically returned to the queue on the next fetch and published again (immediately in auto mode, via the approval queue in manual mode).
+- **Self-repair**: if a published discussion is deleted from the forum, its item is automatically returned to the approval queue on the next fetch with a "Previously deleted" badge. Restored items are never auto-published — an admin reviews them and decides.
 - Pause any feed with a single toggle — paused feeds are skipped during fetching.
 - Heavy work (feed fetching and discussion creation) runs as **queue jobs** (`Flarum\Queue`), so many posts never stall the forum.
 - English and Russian locales.

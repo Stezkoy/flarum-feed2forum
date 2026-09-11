@@ -19,12 +19,14 @@ class Item extends AbstractModel
         'link',
         'published_at',
         'status',
+        'was_deleted',
         'discussion_id',
     ];
 
     protected $casts = [
         'feed_id' => 'integer',
         'discussion_id' => 'integer',
+        'was_deleted' => 'boolean',
         'published_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

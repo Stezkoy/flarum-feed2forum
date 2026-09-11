@@ -50,6 +50,9 @@ class FetchFeedJob extends AbstractJob
         $pending = Item::query()
             ->where('feed_id', $this->feed->id)
             ->where('status', 'pending')
+            // Items restored after their discussion was deleted on the forum
+            // wait for manual approval — they are not auto-published.
+            ->where('was_deleted', false)
             ->orderByDesc('published_at')
             ->orderByDesc('id')
             ->get();

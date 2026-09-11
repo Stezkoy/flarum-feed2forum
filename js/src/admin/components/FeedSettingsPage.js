@@ -220,6 +220,7 @@ export default class FeedSettingsPage extends ExtensionPage {
             publishedAt: (res.attributes && res.attributes.published_at) || null,
             feedTitle: feed && feed.attributes ? feed.attributes.title : '—',
             wasPublished,
+            wasDeleted: !!(res.attributes && res.attributes.was_deleted),
           };
         });
       })
@@ -428,7 +429,10 @@ export default class FeedSettingsPage extends ExtensionPage {
         ...this.queue.map((row) =>
           m('.Feed2forumTable-row', [
             m('.Feed2forumTable-cell', row.feedTitle),
-            m('.Feed2forumTable-cell.Feed2forumTable-cell--grow', row.title),
+            m('.Feed2forumTable-cell.Feed2forumTable-cell--grow', [
+              row.title,
+              row.wasDeleted ? m('span.Feed2forumRestoredBadge', this.translate('queue_restored_badge')) : null,
+            ]),
             m('.Feed2forumTable-cell', row.publishedAt ? dayjs(row.publishedAt).format('YYYY-MM-DD HH:mm') : '—'),
             m('.Feed2forumTable-cell.Feed2forumTable-actions', [
               m(

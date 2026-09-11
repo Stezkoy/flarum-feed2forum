@@ -28,6 +28,7 @@ stezkoy-feed2forum:
       queue_count: '{count} item(s) waiting for approval'
       queue_delete_tooltip: Delete item
       queue_delete_confirmation: Delete this item without publishing it?
+      queue_restored_badge: "Previously deleted"
       queue_empty: There are no items waiting for approval.
       queue_hint: Press Publish to create a discussion from the item. Only the newest items within each feed's publish limit end up in this queue.
       queue_load_error: Could not load the approval queue.

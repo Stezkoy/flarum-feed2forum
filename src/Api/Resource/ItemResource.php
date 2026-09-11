@@ -82,6 +82,7 @@ class ItemResource extends AbstractDatabaseResource
                 ->get(fn (Item $item) => $item->published_at?->toIso8601String()),
             Schema\Str::make('status')
                 ->in(['pending', 'published', 'skipped']),
+            Schema\Bool::make('was_deleted'),
             Schema\Integer::make('discussion_id'),
             Schema\DateTime::make('created_at'),
             Schema\Relationship\ToOne::make('feed')
