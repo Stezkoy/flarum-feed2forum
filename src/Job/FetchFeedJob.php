@@ -24,7 +24,6 @@ class FetchFeedJob extends AbstractJob
         $reset = $fetcher->resetOrphanedItems($this->feed);
 
         if ($reset > 0) {
-            $logger->info('[Feed2Forum] Reset '.$reset.' item(s) whose discussions were deleted.');
             WorkLog::info('Restored '.$reset.' item(s) of "'.$this->feed->title.'" whose discussions were deleted on the forum.', $this->feed->id);
         }
 
@@ -37,7 +36,6 @@ class FetchFeedJob extends AbstractJob
             return;
         }
 
-        $logger->info('[Feed2Forum] Feed '.$this->feed->id.': '.count($items).' new item(s).');
         WorkLog::info(
             'Checked "'.$this->feed->title.'": '.(count($items) > 0 ? count($items).' new item(s).' : 'no new items.'),
             $this->feed->id

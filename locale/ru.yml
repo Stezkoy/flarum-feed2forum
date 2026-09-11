@@ -10,7 +10,7 @@ stezkoy-feed2forum:
       author_select_button: Выбрать автора
       author_select_title: Выбор автора
       fetch_interval_label: Частота проверки (минуты)
-      fetch_interval_help: Как часто планировщик задач запускает загрузку лент. По умолчанию 60.
+      fetch_interval_help: "Проверять ленты каждые N минут (по умолчанию 60)."
       show_source_link_label: Добавлять ссылки на оригинал
       show_source_link_help: "Если включено, ссылка на оригинальную статью добавляется в начало каждой темы."
       queue_heading: Очередь на одобрение

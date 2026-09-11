@@ -14,16 +14,10 @@ class FeedFetchSchedule
 
     public function __invoke(Event $event): void
     {
-        $minutes = max(1, (int) $this->settings->get('stezkoy-feed2forum.fetch_interval', 60));
-
-        if ($minutes >= 60) {
-            $hours = max(1, (int) round($minutes / 60));
-
-            $event->cron('0 */'.$hours.' * * *');
-
-            return;
-        }
-
-        $event->cron("*/{$minutes} * * * *");
+        // Cron cannot express "every N minutes" for intervals that do not
+        // divide 60 (e.g. 43 min -> fires at :00 and :43 with 17-minute gaps).
+        // Run every minute instead; FetchFeeds gates on the real interval
+        // (last_fetch_at setting) and skips runs that come too early.
+        $event->cron('* * * * *');
     }
 }
