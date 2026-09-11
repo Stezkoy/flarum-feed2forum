@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
 use Psr\Log\NullLogger;
 use Stezkoy\Feed2forum\Models\Feed;
 use Stezkoy\Feed2forum\Models\Item;
+use Stezkoy\Feed2forum\Support\WorkLog;
 
 class FeedFetcher
 {
@@ -75,10 +76,17 @@ class FeedFetcher
 
         $kept = array_slice($items, 0, $limit);
 
-        foreach (array_slice($items, $limit) as $item) {
+        $skipped = array_slice($items, $limit);
+
+        foreach ($skipped as $item) {
             $item->status = 'skipped';
             $item->save();
         }
+
+        WorkLog::info(
+            'Skipped '.count($skipped).' older item(s) of "'.$feed->title.'" (publish limit '.$limit.').',
+            $feed->id
+        );
 
         return $kept;
     }

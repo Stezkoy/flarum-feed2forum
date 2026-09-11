@@ -8,6 +8,7 @@ use Psr\Log\LoggerInterface;
 use Stezkoy\Feed2forum\Models\Feed;
 use Stezkoy\Feed2forum\Models\Item;
 use Stezkoy\Feed2forum\Support\FeedFetcher;
+use Stezkoy\Feed2forum\Support\WorkLog;
 
 class FetchFeedJob extends AbstractJob
 {
@@ -24,6 +25,7 @@ class FetchFeedJob extends AbstractJob
             $items = $fetcher->fetchFeed($this->feed);
         } catch (\Throwable $e) {
             $logger->error('[Feed2Forum] Failed to fetch feed '.$this->feed->id.': '.$e::class.': '.$e->getMessage());
+            WorkLog::error('Fetch failed for "'.$this->feed->title.'": '.$e->getMessage(), $this->feed->id);
 
             return;
         }
@@ -33,6 +35,7 @@ class FetchFeedJob extends AbstractJob
         }
 
         $logger->info('[Feed2Forum] Feed '.$this->feed->id.': '.count($items).' new item(s).');
+        WorkLog::info('Fetched "'.$this->feed->title.'": '.count($items).' new item(s).', $this->feed->id);
 
         if ((string) $this->feed->publish_mode !== 'auto') {
             return;

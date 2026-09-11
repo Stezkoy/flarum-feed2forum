@@ -10,6 +10,7 @@ use Flarum\Http\RequestUtil;
 use Illuminate\Database\Eloquent\Builder;
 use Stezkoy\Feed2forum\Models\Item;
 use Stezkoy\Feed2forum\Support\ItemPublisher;
+use Stezkoy\Feed2forum\Support\WorkLog;
 use Tobyz\JsonApiServer\Context;
 
 class ItemResource extends AbstractDatabaseResource
@@ -93,7 +94,15 @@ class ItemResource extends AbstractDatabaseResource
     {
         $item = $context->model;
 
-        $this->publisher->publish($item);
+        try {
+            $discussion = $this->publisher->publish($item);
+
+            WorkLog::info('Published "'.$item->title.'" as discussion #'.$discussion->id.' (manual).', $item->feed_id);
+        } catch (\Throwable $e) {
+            WorkLog::error('Failed to publish "'.$item->title.'": '.$e->getMessage(), $item->feed_id);
+
+            throw $e;
+        }
 
         return $item->refresh();
     }

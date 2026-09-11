@@ -26,6 +26,11 @@ export default class FeedSettingsPage extends ExtensionPage {
     this.checkingAll = false;
     this.queue = [];
     this.tags = [];
+    this.logExpanded = false;
+    this.logsLoaded = false;
+    this.loadingLogs = false;
+    this.logs = [];
+    this.clearingLog = false;
 
     this.resetNewFeed();
 
@@ -59,6 +64,7 @@ export default class FeedSettingsPage extends ExtensionPage {
         m('.Feed2forumSettings', [
           this.section('general_heading', [this.authorSetting(), this.fetchIntervalSetting(), this.showSourceLinkSetting()], 'general_help'),
           this.section('queue_heading', [this.queueBody()]),
+          this.logSection(),
           this.section('feeds_heading', [this.checkAllButton(), this.feedsBody()]),
           m('.Form-group.Form-controls', [this.submitButton(), this.resetButton()]),
         ]),
@@ -250,6 +256,124 @@ export default class FeedSettingsPage extends ExtensionPage {
         this.loadQueue();
       })
       .catch(() => app.alerts.show({ type: 'error' }, this.translate('queue_clear_error')));
+  }
+
+  logSection() {
+    return m(
+      '.Feed2forumSettings-section',
+      m(
+        '.Feed2forumLogHeader',
+        {
+          onclick: () => this.toggleLog(),
+          role: 'button',
+        },
+        [
+          m(Icon, { name: this.logExpanded ? 'fas fa-chevron-down' : 'fas fa-chevron-right' }),
+          m('h3', this.translate('log_heading')),
+          m('span.Feed2forumLogHint', this.translate('log_hint')),
+        ]
+      ),
+      this.logExpanded ? m('.Feed2forumSettings-sectionBody', [this.logBody()]) : null
+    );
+  }
+
+  toggleLog() {
+    this.logExpanded = !this.logExpanded;
+
+    if (this.logExpanded && !this.logsLoaded) {
+      this.loadLogs();
+    }
+
+    m.redraw();
+  }
+
+  loadLogs() {
+    this.loadingLogs = true;
+    m.redraw();
+
+    app
+      .request({
+        method: 'GET',
+        url: `${app.forum.attribute('apiUrl')}/feed2forum-logs?page[limit]=100`,
+      })
+      .then((response) => {
+        this.logs = (response.data || []).map((res) => ({
+          id: res.id,
+          level: (res.attributes && res.attributes.level) || 'info',
+          message: (res.attributes && res.attributes.message) || '',
+          createdAt: (res.attributes && res.attributes.created_at) || null,
+        }));
+        this.logsLoaded = true;
+      })
+      .catch(() => app.alerts.show({ type: 'error' }, this.translate('log_load_error')))
+      .finally(() => {
+        this.loadingLogs = false;
+        m.redraw();
+      });
+  }
+
+  clearLog() {
+    if (!confirm(this.translate('log_clear_confirmation'))) return;
+
+    this.clearingLog = true;
+    m.redraw();
+
+    app
+      .request({
+        method: 'POST',
+        url: `${app.forum.attribute('apiUrl')}/feed2forum-logs/clear`,
+      })
+      .then(() => {
+        app.alerts.show({ type: 'success' }, this.translate('log_clear_success'));
+        this.logs = [];
+        this.loadLogs();
+      })
+      .catch(() => app.alerts.show({ type: 'error' }, this.translate('log_clear_error')))
+      .finally(() => {
+        this.clearingLog = false;
+        m.redraw();
+      });
+  }
+
+  logBody() {
+    return [
+      m('.Feed2forumQueueToolbar', [
+        m('span', m('strong', this.translate('log_count', { count: this.logs.length }))),
+        m('.Feed2forumLogActions', [
+          m(Button, {
+            className: 'Button Button--icon',
+            icon: 'fas fa-sync',
+            loading: this.loadingLogs,
+            title: this.translate('log_refresh'),
+            onclick: () => this.loadLogs(),
+          }),
+          m(
+            Button,
+            {
+              className: 'Button Button--danger',
+              icon: 'fas fa-broom',
+              loading: this.clearingLog,
+              onclick: () => this.clearLog(),
+            },
+            this.translate('log_clear')
+          ),
+        ]),
+      ]),
+      this.loadingLogs && !this.logsLoaded
+        ? m(LoadingIndicator, { display: 'block' })
+        : this.logs.length
+        ? m(
+            '.Feed2forumLogList',
+            this.logs.map((entry) =>
+              m('.Feed2forumLogItem', { className: `Feed2forumLogItem--${entry.level}` }, [
+                m('span.Feed2forumLogItem-time', entry.createdAt ? dayjs(entry.createdAt).format('YYYY-MM-DD HH:mm') : '—'),
+                m('span.Feed2forumLogItem-level', this.translate(`log_level_${entry.level}`)),
+                m('span.Feed2forumLogItem-message', entry.message),
+              ])
+            )
+          )
+        : m('p.helpText', this.translate('log_empty')),
+    ];
   }
 
   deleteItem(id) {

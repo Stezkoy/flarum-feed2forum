@@ -33,6 +33,18 @@ stezkoy-feed2forum:
       queue_load_error: Could not load the approval queue.
       queue_publish_error: Could not publish the item.
       queue_delete_error: Could not delete the item.
+      log_heading: Work log
+      log_hint: last 100 entries, at most 500 are kept
+      log_count: "{count} entries"
+      log_level_info: info
+      log_level_error: error
+      log_empty: No entries yet.
+      log_refresh: Refresh
+      log_clear: Clear log
+      log_clear_confirmation: Delete all log entries?
+      log_clear_success: The log has been cleared.
+      log_clear_error: Could not clear the log.
+      log_load_error: Could not load the log.
       feeds_heading: Feeds
       feeds_heading_title: Title
       feeds_heading_url: URL

@@ -71,6 +71,10 @@ Add new feeds via the blank row at the bottom of the table.
 
 Feeds in *Manually* mode place their new articles here: publish any of them with one click (the discussion is created immediately and the item leaves the queue), delete them, or clear the whole queue at once.
 
+### Work log
+
+A collapsible log below the queue shows what the extension did: fetches, publications, skipped items and errors. It is capped at 500 rows in the database (pruned on every write) and the admin panel loads only the last 100 entries, so it cannot grow unbounded.
+
 ## Fetching Feeds
 
 The extension registers the `feed2forum:fetch` command.
