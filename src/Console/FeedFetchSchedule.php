@@ -20,6 +20,6 @@ class FeedFetchSchedule
             $minutes = 60;
         }
 
-        $event->everyMinutes($minutes);
+        $event->cron("*/{$minutes} * * * *");
     }
 }
