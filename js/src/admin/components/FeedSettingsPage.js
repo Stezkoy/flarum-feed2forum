@@ -30,6 +30,7 @@ export default class FeedSettingsPage extends ExtensionPage {
     this.logsLoaded = false;
     this.loadingLogs = false;
     this.logs = [];
+    this.logsNextUrl = null;
     this.clearingLog = false;
 
     this.resetNewFeed();
@@ -298,29 +299,39 @@ export default class FeedSettingsPage extends ExtensionPage {
     m.redraw();
   }
 
-  loadLogs() {
+  loadLogs(url = null) {
     this.loadingLogs = true;
     m.redraw();
 
-    app
-      .request({
-        method: 'GET',
-        url: `${app.forum.attribute('apiUrl')}/feed2forum-logs?page[limit]=100`,
-      })
+    const request = url
+      ? app.request({ method: 'GET', url })
+      : app.request({
+          method: 'GET',
+          url: `${app.forum.attribute('apiUrl')}/feed2forum-logs?page[limit]=100`,
+        });
+
+    request
       .then((response) => {
-        this.logs = (response.data || []).map((res) => ({
+        const entries = (response.data || []).map((res) => ({
           id: res.id,
           level: (res.attributes && res.attributes.level) || 'info',
           message: (res.attributes && res.attributes.message) || '',
           createdAt: (res.attributes && res.attributes.created_at) || null,
         }));
+
+        this.logs = url ? this.logs.concat(entries) : entries;
         this.logsLoaded = true;
+        this.logsNextUrl = response.links && response.links.next ? response.links.next : null;
       })
       .catch(() => app.alerts.show({ type: 'error' }, this.translate('log_load_error')))
       .finally(() => {
         this.loadingLogs = false;
         m.redraw();
       });
+  }
+
+  loadMoreLogs() {
+    if (this.logsNextUrl) this.loadLogs(this.logsNextUrl);
   }
 
   clearLog() {
@@ -384,6 +395,21 @@ export default class FeedSettingsPage extends ExtensionPage {
             )
           )
         : m('p.helpText', this.translate('log_empty')),
+      this.logsLoaded && this.logsNextUrl
+        ? m(
+            '.Feed2forumLogMore',
+            m(
+              Button,
+              {
+                className: 'Button',
+                icon: 'fas fa-chevron-down',
+                loading: this.loadingLogs,
+                onclick: () => this.loadMoreLogs(),
+              },
+              this.translate('log_more')
+            )
+          )
+        : null,
     ];
   }
 

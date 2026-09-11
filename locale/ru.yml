@@ -46,6 +46,7 @@ stezkoy-feed2forum:
       log_clear_success: Журнал очищен.
       log_clear_error: Не удалось очистить журнал.
       log_load_error: Не удалось загрузить журнал.
+      log_more: Показать ещё 100
       feeds_heading: Ленты
       feeds_heading_title: Название
       feeds_heading_url: URL
