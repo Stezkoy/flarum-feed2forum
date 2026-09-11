@@ -29,6 +29,11 @@
             "role": "Developer"
         }
     ],
+    "support": {
+        "source": "https://github.com/Stezkoy/flarum-feed2forum",
+        "issues": "https://github.com/Stezkoy/flarum-feed2forum/issues",
+        "forum": "https://discuss.flarum.org/d/39843-feed2forum-turn-rssatom-feeds-into-real-forum-discussions"
+    },
     "autoload": {
         "psr-4": {
             "Stezkoy\\Feed2forum\\": "src/"
