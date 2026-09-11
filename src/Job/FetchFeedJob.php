@@ -21,6 +21,13 @@ class FetchFeedJob extends AbstractJob
         FeedFetcher $fetcher,
         LoggerInterface $logger
     ): void {
+        $reset = $fetcher->resetOrphanedItems();
+
+        if ($reset > 0) {
+            $logger->info('[Feed2Forum] Reset '.$reset.' item(s) whose discussions were deleted.');
+            WorkLog::info('Restored '.$reset.' item(s) whose discussions were deleted on the forum.', null);
+        }
+
         try {
             $items = $fetcher->fetchFeed($this->feed);
         } catch (\Throwable $e) {
@@ -30,27 +37,34 @@ class FetchFeedJob extends AbstractJob
             return;
         }
 
-        if ($items === []) {
-            return;
-        }
-
         $logger->info('[Feed2Forum] Feed '.$this->feed->id.': '.count($items).' new item(s).');
-        WorkLog::info('Fetched "'.$this->feed->title.'": '.count($items).' new item(s).', $this->feed->id);
+
+        if (count($items) > 0) {
+            WorkLog::info('Fetched "'.$this->feed->title.'": '.count($items).' new item(s).', $this->feed->id);
+        }
 
         if ((string) $this->feed->publish_mode !== 'auto') {
             return;
         }
 
-        usort(
-            $items,
-            fn (Item $a, Item $b): int => $b->published_at?->timestamp ?? 0 <=> $a->published_at?->timestamp ?? 0
-        );
+        $pending = Item::query()
+            ->where('feed_id', $this->feed->id)
+            ->where('status', 'pending')
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->get();
+
+        if ($pending->isEmpty()) {
+            return;
+        }
 
         $limit = max(0, (int) $this->feed->publish_limit);
-        $candidates = $limit > 0 ? array_slice($items, 0, $limit) : $items;
+        $candidates = $limit > 0 ? $pending->take($limit) : $pending;
 
         foreach ($candidates as $item) {
             $queue->push(new PublishItemJob($item));
         }
+
+        WorkLog::info('Queued '.$candidates->count().' item(s) of "'.$this->feed->title.'" for publishing.', $this->feed->id);
     }
 }

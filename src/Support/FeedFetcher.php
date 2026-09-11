@@ -4,6 +4,7 @@ namespace Stezkoy\Feed2forum\Support;
 
 use FeedIo\Adapter\Http\Client as FeedIoHttpClient;
 use FeedIo\FeedIo;
+use Flarum\Discussion\Discussion;
 use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
@@ -91,9 +92,24 @@ class FeedFetcher
         return $kept;
     }
 
-    public function feedIo(): FeedIo
+    /**
+     * Return items whose discussion was deleted on the forum back to the
+     * approval queue, so they can be published again.
+     */
+    public function resetOrphanedItems(): int
     {
-        $guzzle = new GuzzleClient([
+        return Item::query()
+            ->where('status', 'published')
+            ->where(function ($query) {
+                $query
+                    ->whereNull('discussion_id')
+                    ->orWhereNotIn('discussion_id', Discussion::query()->select('id'));
+            })
+            ->update(['status' => 'pending', 'discussion_id' => null]);
+    }
+
+    public function feedIo(): FeedIo
+    {        $guzzle = new GuzzleClient([
             'timeout' => 15,
             'connect_timeout' => 8,
         ]);
