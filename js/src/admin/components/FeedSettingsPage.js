@@ -76,7 +76,7 @@ export default class FeedSettingsPage extends ExtensionPage {
     ]);
   }
 
-  translate(key, vars = null) {
+  translate(key, vars = {}) {
     return app.translator.trans(`${PREFIX}.admin.settings.${key}`, vars);
   }
 
