@@ -47,7 +47,6 @@
         "flarum-extension": {
             "title": "Feed2Forum",
             "category": "feature",
-            "database-support": ["mysql", "pgsql", "sqlite"],
             "icon": {
                 "name": "fas fa-rss-square",
                 "backgroundColor": "#00a185",
