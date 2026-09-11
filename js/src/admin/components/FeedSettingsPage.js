@@ -446,7 +446,7 @@ export default class FeedSettingsPage extends ExtensionPage {
                 this.translate('queue_publish')
               ),
               m(Button, {
-                className: 'Button Button--danger',
+                className: 'Button Button--icon',
                 icon: 'fas fa-trash',
                 title: this.translate('queue_delete_tooltip'),
                 onclick: () => this.deleteItem(row.id),
