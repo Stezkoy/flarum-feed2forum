@@ -603,7 +603,7 @@ export default class FeedSettingsPage extends ExtensionPage {
 
   checkAllButton() {
     return m(
-      '.Form-group',
+      '.Feed2forumCheckAllRow',
       m(
         Button,
         {

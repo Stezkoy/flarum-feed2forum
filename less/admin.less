@@ -126,6 +126,31 @@
   }
 }
 
+.Feed2forumCheckAllRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+// Core .Button has `gap: 7px`, which adds phantom width to icon-only
+// buttons (icon + empty label span). Neutralize it inside our controls.
+// Core also keeps the icon AND appends an 18px spinner while loading,
+// which widens the button — hide the icon and match the spinner size.
+.Feed2forumSettings .Button--icon,
+.Feed2forumQueueToolbar .Button--icon,
+.Feed2forumLogActions .Button--icon {
+  gap: 0;
+
+  &.loading {
+    .Button-icon {
+      display: none;
+    }
+
+    .LoadingIndicator--inline {
+      --size: 14px;
+    }
+  }
+}
+
 .Feed2forumRestoredBadge {
   display: inline-block;
   margin-left: 8px;

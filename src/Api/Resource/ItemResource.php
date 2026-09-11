@@ -66,7 +66,9 @@ class ItemResource extends AbstractDatabaseResource
                 ->route('POST', '/clear')
                 ->admin()
                 ->action(function (): array {
-                    Item::query()->where('status', 'pending')->delete();
+                    // Mark as skipped instead of deleting: the rows stay as
+                    // dedup tombstones so fetches never re-import them.
+                    Item::query()->where('status', 'pending')->update(['status' => 'skipped']);
 
                     return ['data' => ['type' => 'feed2forum-items', 'id' => 'cleared']];
                 }),
@@ -89,6 +91,14 @@ class ItemResource extends AbstractDatabaseResource
                 ->type('feed2forum-feeds')
                 ->includable(),
         ];
+    }
+
+    public function delete(object $model, Context $context): void
+    {
+        // Mark as skipped instead of deleting: the row stays as a dedup
+        // tombstone so the item is never re-imported on the next fetch.
+        $model->status = 'skipped';
+        $model->save();
     }
 
     private function publish(FlarumContext $context)

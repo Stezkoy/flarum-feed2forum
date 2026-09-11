@@ -22,12 +22,12 @@ stezkoy-feed2forum:
       queue_published: Discussion created. The item has been removed from the queue.
       queue_queued: The item was added to the publication queue. The discussion appears once the queue worker processes it.
       queue_clear: Clear queue
-      queue_clear_confirmation: Delete all pending items from the queue? No discussions will be created for them.
+      queue_clear_confirmation: Skip all pending items? They will never appear in the queue again and will not be re-imported from the feeds.
       queue_clear_success: The approval queue has been cleared.
       queue_clear_error: Could not clear the queue.
       queue_count: '{count} item(s) waiting for approval'
-      queue_delete_tooltip: Delete item
-      queue_delete_confirmation: Delete this item without publishing it?
+      queue_delete_tooltip: Skip item
+      queue_delete_confirmation: Skip this item without publishing it? It will never appear in the queue again and will not be re-imported from the feed.
       queue_restored_badge: "Previously deleted"
       queue_empty: There are no items waiting for approval.
       queue_hint: Press Publish to create a discussion from the item. Only the newest items within each feed's publish limit end up in this queue.
