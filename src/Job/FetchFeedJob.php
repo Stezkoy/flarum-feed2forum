@@ -21,11 +21,11 @@ class FetchFeedJob extends AbstractJob
         FeedFetcher $fetcher,
         LoggerInterface $logger
     ): void {
-        $reset = $fetcher->resetOrphanedItems();
+        $reset = $fetcher->resetOrphanedItems($this->feed);
 
         if ($reset > 0) {
             $logger->info('[Feed2Forum] Reset '.$reset.' item(s) whose discussions were deleted.');
-            WorkLog::info('Restored '.$reset.' item(s) whose discussions were deleted on the forum.', null);
+            WorkLog::info('Restored '.$reset.' item(s) of "'.$this->feed->title.'" whose discussions were deleted on the forum.', $this->feed->id);
         }
 
         try {

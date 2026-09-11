@@ -2,9 +2,9 @@ stezkoy-feed2forum:
   admin:
     settings:
       general_heading: Общие настройки
-      general_help: Глобальные настройки, применяемые ко всем лентам.
+      general_help: "Глобальные настройки, применяемые ко всем лентам."
       author_label: Автор
-      author_help: Темы, созданные из статей ленты, будут иметь этого автора.
+      author_help: "Темы, созданные из статей ленты, будут иметь этого автора."
       author_change_tooltip: Сменить автора
       author_unbind_tooltip: Отвязать автора
       author_select_button: Выбрать автора
@@ -12,7 +12,7 @@ stezkoy-feed2forum:
       fetch_interval_label: Частота проверки (минуты)
       fetch_interval_help: Как часто планировщик задач запускает загрузку лент. По умолчанию 60.
       show_source_link_label: Добавлять ссылки на оригинал
-      show_source_link_help: Если включено, ссылка на оригинальную статью добавляется в начало каждой темы.
+      show_source_link_help: "Если включено, ссылка на оригинальную статью добавляется в начало каждой темы."
       queue_heading: Очередь на одобрение
       queue_heading_feed: Лента
       queue_heading_title: Заголовок
@@ -22,27 +22,27 @@ stezkoy-feed2forum:
       queue_published: Тема создана. Статья удалена из очереди.
       queue_queued: Статья добавлена в очередь публикации. Тема появится после обработки воркером очереди.
       queue_clear: Очистить очередь
-      queue_clear_confirmation: Скрыть все ожидающие статьи? Они больше не появятся в очереди и не будут заново импортированы из лент.
+      queue_clear_confirmation: "Скрыть все ожидающие статьи? Они больше не появятся в очереди и не будут заново импортированы из лент."
       queue_clear_success: Очередь на одобрение очищена.
       queue_clear_error: Не удалось очистить очередь.
       queue_count: 'Статей в очереди: {count}'
       queue_delete_tooltip: Скрыть статью
-      queue_delete_confirmation: Скрыть статью без публикации? Она больше не появится в очереди и не будет заново импортирована из ленты.
+      queue_delete_confirmation: "Скрыть статью без публикации? Она больше не появится в очереди и не будет заново импортирована из ленты."
       queue_restored_badge: "Ранее удалена"
       queue_empty: Ожидающих одобрения статей нет.
-      queue_hint: Нажмите «Опубликовать», чтобы создать тему из статьи. В очередь попадают только самые свежие статьи в пределах лимита публикаций каждой ленты.
+      queue_hint: "Нажмите «Опубликовать», чтобы создать тему из статьи. В очередь попадают только самые свежие статьи в пределах лимита публикаций каждой ленты."
       queue_load_error: Не удалось загрузить очередь.
       queue_publish_error: Не удалось опубликовать статью.
       queue_delete_error: Не удалось удалить статью.
       log_heading: Журнал работы
-      log_hint: последние 100 записей, хранится не более 500
+      log_hint: "последние 100 записей, хранится не более 500"
       log_count: "Записей: {count}"
       log_level_info: инфо
       log_level_error: ошибка
       log_empty: Записей пока нет.
       log_refresh: Обновить
       log_clear: Очистить журнал
-      log_clear_confirmation: Удалить все записи журнала?
+      log_clear_confirmation: "Удалить все записи журнала?"
       log_clear_success: Журнал очищен.
       log_clear_error: Не удалось очистить журнал.
       log_load_error: Не удалось загрузить журнал.
@@ -63,7 +63,7 @@ stezkoy-feed2forum:
       tag_select_title: Выбор тега
       feeds_hint: Каждая строка редактируется и сохраняется при потере фокуса. Приостановленные ленты пропускаются при загрузке.
       feeds_delete_tooltip: Удалить ленту
-      feeds_delete_confirmation: Удалить ленту? Импортированные темы сохранятся, но сама лента и её неопубликованные статьи будут удалены.
+      feeds_delete_confirmation: "Удалить ленту? Импортированные темы сохранятся, но сама лента и её неопубликованные статьи будут удалены."
       feed_update_error: Не удалось сохранить ленту.
       feed_delete_error: Не удалось удалить ленту.
       tag_none: Без тега
@@ -71,7 +71,7 @@ stezkoy-feed2forum:
       new_feed_url: "https://example.com/feed.xml"
       new_feed_add: Добавить ленту
       new_feed_error: Не удалось добавить ленту.
-      new_feed_url_invalid: URL должен начинаться с http:// или https://.
+      new_feed_url_invalid: "URL должен начинаться с http:// или https://."
       preview_tooltip: Предпросмотр
       preview_title: '{title} — предпросмотр'
       preview_close: Закрыть

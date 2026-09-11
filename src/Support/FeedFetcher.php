@@ -26,29 +26,44 @@ class FeedFetcher
     {
         $result = $this->feedIo()->read($feed->url);
 
-        $newItems = [];
+        $entries = [];
 
         foreach ($result->getFeed() as $entry) {
-            $payload = [
-                'feed_id' => $feed->id,
+            $entries[] = [
                 'guid' => $this->entryGuid($entry),
                 'title' => mb_substr(trim((string) $entry->getTitle()), 0, 255),
                 'link' => trim((string) $entry->getLink()),
                 'content' => $this->entryContent($entry),
                 'published_at' => $entry->getLastModified() ?: Carbon::now(),
             ];
+        }
 
-            $existing = Item::where('feed_id', $feed->id)
-                ->where('guid', $payload['guid'])
-                ->first();
+        // One batched lookup instead of a SELECT per entry (N+1).
+        $existing = Item::query()
+            ->where('feed_id', $feed->id)
+            ->whereIn('guid', array_column($entries, 'guid'))
+            ->pluck('guid')
+            ->all();
 
-            if ($existing) {
-                $existing->fill(Arr::only($payload, ['title', 'link', 'content', 'published_at']))->save();
+        $newItems = [];
+
+        foreach ($entries as $payload) {
+            if (in_array($payload['guid'], $existing, true)) {
+                Item::query()
+                    ->where('feed_id', $feed->id)
+                    ->where('guid', $payload['guid'])
+                    ->update(Arr::only($payload, ['title', 'link', 'content', 'published_at']));
 
                 continue;
             }
 
-            $newItems[] = Item::create(array_merge($payload, ['status' => 'pending']));
+            $newItems[] = Item::create(array_merge($payload, [
+                'feed_id' => $feed->id,
+                'status' => 'pending',
+            ]));
+
+            // The same article can appear twice in one feed payload.
+            $existing[] = $payload['guid'];
         }
 
         return $this->applyPublishLimit($feed, $newItems);
@@ -93,13 +108,14 @@ class FeedFetcher
     }
 
     /**
-     * Return items whose discussion was deleted on the forum to the approval
-     * queue with a "was deleted" marker. They are never auto-published —
-     * an admin reviews them in the queue and decides.
+     * Return items of this feed whose discussion was deleted on the forum to
+     * the approval queue with a "was deleted" marker. They are never
+     * auto-published — an admin reviews them in the queue and decides.
      */
-    public function resetOrphanedItems(): int
+    public function resetOrphanedItems(Feed $feed): int
     {
         return Item::query()
+            ->where('feed_id', $feed->id)
             ->where('status', 'published')
             ->where(function ($query) {
                 $query

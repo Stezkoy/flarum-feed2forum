@@ -12,7 +12,7 @@ stezkoy-feed2forum:
       fetch_interval_label: Check frequency (minutes)
       fetch_interval_help: How often the scheduler runs feed fetches. Defaults to 60.
       show_source_link_label: Add links to original articles
-      show_source_link_help: When enabled, a link to the original article is added at the beginning of each discussion.
+      show_source_link_help: "When enabled, a link to the original article is added at the beginning of each discussion."
       queue_heading: Approval queue
       queue_heading_feed: Feed
       queue_heading_title: Title
@@ -22,12 +22,12 @@ stezkoy-feed2forum:
       queue_published: Discussion created. The item has been removed from the queue.
       queue_queued: The item was added to the publication queue. The discussion appears once the queue worker processes it.
       queue_clear: Clear queue
-      queue_clear_confirmation: Skip all pending items? They will never appear in the queue again and will not be re-imported from the feeds.
+      queue_clear_confirmation: "Skip all pending items? They will never appear in the queue again and will not be re-imported from the feeds."
       queue_clear_success: The approval queue has been cleared.
       queue_clear_error: Could not clear the queue.
       queue_count: '{count} item(s) waiting for approval'
       queue_delete_tooltip: Skip item
-      queue_delete_confirmation: Skip this item without publishing it? It will never appear in the queue again and will not be re-imported from the feed.
+      queue_delete_confirmation: "Skip this item without publishing it? It will never appear in the queue again and will not be re-imported from the feed."
       queue_restored_badge: "Previously deleted"
       queue_empty: There are no items waiting for approval.
       queue_hint: Press Publish to create a discussion from the item. Only the newest items within each feed's publish limit end up in this queue.
@@ -35,14 +35,14 @@ stezkoy-feed2forum:
       queue_publish_error: Could not publish the item.
       queue_delete_error: Could not delete the item.
       log_heading: Work log
-      log_hint: last 100 entries, at most 500 are kept
+      log_hint: "last 100 entries, at most 500 are kept"
       log_count: "{count} entries"
       log_level_info: info
       log_level_error: error
       log_empty: No entries yet.
       log_refresh: Refresh
       log_clear: Clear log
-      log_clear_confirmation: Delete all log entries?
+      log_clear_confirmation: "Delete all log entries?"
       log_clear_success: The log has been cleared.
       log_clear_error: Could not clear the log.
       log_load_error: Could not load the log.
@@ -63,7 +63,7 @@ stezkoy-feed2forum:
       tag_select_title: Choose tag
       feeds_hint: Each row can be edited and is saved on blur. Paused feeds are skipped when fetching.
       feeds_delete_tooltip: Delete feed
-      feeds_delete_confirmation: Delete this feed? Imported items will be kept, but the feed itself and its pending items are removed.
+      feeds_delete_confirmation: "Delete this feed? Imported items will be kept, but the feed itself and its pending items are removed."
       feed_update_error: Could not save the feed.
       feed_delete_error: Could not delete the feed.
       tag_none: No tag
@@ -71,7 +71,7 @@ stezkoy-feed2forum:
       new_feed_url: "https://example.com/feed.xml"
       new_feed_add: Add feed
       new_feed_error: Could not add the feed.
-      new_feed_url_invalid: The URL must start with http:// or https://.
+      new_feed_url_invalid: "The URL must start with http:// or https://."
       preview_tooltip: Preview
       preview_title: '{title} — preview'
       preview_close: Close
