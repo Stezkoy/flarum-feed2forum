@@ -1,7 +1,6 @@
 {
     "name": "stezkoy/flarum-feed2forum",
     "description": "A Flarum extension that turns RSS/Atom feeds into real forum discussions, posted to tags by a selected user.",
-    "version": "1.0.0-beta.1",
     "keywords": [
         "flarum",
         "rss",
