@@ -30,7 +30,8 @@ export default class FeedSettingsPage extends ExtensionPage {
     this.logsLoaded = false;
     this.loadingLogs = false;
     this.logs = [];
-    this.logsNextUrl = null;
+    this.logsOffset = 0;
+    this.logsHasMore = false;
     this.clearingLog = false;
 
     this.resetNewFeed();
@@ -299,29 +300,28 @@ export default class FeedSettingsPage extends ExtensionPage {
     m.redraw();
   }
 
-  loadLogs(url = null) {
+  loadLogs(offset = 0) {
     this.loadingLogs = true;
     m.redraw();
 
-    const request = url
-      ? app.request({ method: 'GET', url })
-      : app.request({
-          method: 'GET',
-          url: `${app.forum.attribute('apiUrl')}/feed2forum-logs?page[limit]=100`,
-        });
-
-    request
+    app
+      .request({
+        method: 'GET',
+        url: `${app.forum.attribute('apiUrl')}/feed2forum-logs?page[limit]=100&page[offset]=${offset}`,
+      })
       .then((response) => {
-        const entries = (response.data || []).map((res) => ({
+        const entries = (response.data || []).map((res, index) => ({
           id: res.id,
+          number: offset + index + 1,
           level: (res.attributes && res.attributes.level) || 'info',
           message: (res.attributes && res.attributes.message) || '',
           createdAt: (res.attributes && res.attributes.created_at) || null,
         }));
 
-        this.logs = url ? this.logs.concat(entries) : entries;
+        this.logs = offset ? this.logs.concat(entries) : entries;
         this.logsLoaded = true;
-        this.logsNextUrl = response.links && response.links.next ? response.links.next : null;
+        this.logsOffset = offset;
+        this.logsHasMore = !!(response.links && response.links.next) && entries.length === 100;
       })
       .catch(() => app.alerts.show({ type: 'error' }, this.translate('log_load_error')))
       .finally(() => {
@@ -331,7 +331,7 @@ export default class FeedSettingsPage extends ExtensionPage {
   }
 
   loadMoreLogs() {
-    if (this.logsNextUrl) this.loadLogs(this.logsNextUrl);
+    if (this.logsHasMore) this.loadLogs(this.logsOffset + 100);
   }
 
   clearLog() {
@@ -388,6 +388,7 @@ export default class FeedSettingsPage extends ExtensionPage {
             '.Feed2forumLogList',
             this.logs.map((entry) =>
               m('.Feed2forumLogItem', { className: `Feed2forumLogItem--${entry.level}` }, [
+                m('span.Feed2forumLogItem-number', entry.number),
                 m('span.Feed2forumLogItem-time', entry.createdAt ? dayjs(entry.createdAt).format('YYYY-MM-DD HH:mm') : '—'),
                 m('span.Feed2forumLogItem-level', this.translate(`log_level_${entry.level}`)),
                 m('span.Feed2forumLogItem-message', entry.message),
@@ -395,7 +396,7 @@ export default class FeedSettingsPage extends ExtensionPage {
             )
           )
         : m('p.helpText', this.translate('log_empty')),
-      this.logsLoaded && this.logsNextUrl
+      this.logsLoaded && this.logsHasMore
         ? m(
             '.Feed2forumLogMore',
             m(
