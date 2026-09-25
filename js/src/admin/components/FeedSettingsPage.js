@@ -151,7 +151,7 @@ export default class FeedSettingsPage extends ExtensionPage {
             ]
           : this.authorFetching
           ? m(
-              'button.Button',
+              'button.Button.Button--icon.Feed2forumAuthorButton',
               {
                 type: 'button',
                 disabled: true,
