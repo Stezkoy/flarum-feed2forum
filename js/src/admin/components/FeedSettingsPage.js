@@ -33,8 +33,25 @@ export default class FeedSettingsPage extends ExtensionPage {
     this.logsOffset = 0;
     this.logsHasMore = false;
     this.clearingLog = false;
+    this.authorFetching = false;
 
     this.resetNewFeed();
+
+    // The author setting may already have a value, but the user model is not in
+    // the store on first load — prefetch it so the control shows the selected
+    // author right away instead of only after reopening the user selector.
+    const authorUserId = Number(String(this.setting(`${PREFIX}.author_user_id`, '')() || ''));
+    if (authorUserId) {
+      this.authorFetching = true;
+      app.store
+        .find('users', String(authorUserId))
+        .then(() => m.redraw())
+        .catch(() => {})
+        .finally(() => {
+          this.authorFetching = false;
+          m.redraw();
+        });
+    }
 
     app.store
       .find('feed2forum-feeds')
@@ -132,6 +149,16 @@ export default class FeedSettingsPage extends ExtensionPage {
                 m(Icon, { name: 'fas fa-times' })
               ),
             ]
+          : this.authorFetching
+          ? m(
+              'button.Button',
+              {
+                type: 'button',
+                disabled: true,
+                title: this.translate('author_loading_tooltip'),
+              },
+              m(LoadingIndicator, { size: 'small' })
+            )
           : m(
               'button.Button',
               {
