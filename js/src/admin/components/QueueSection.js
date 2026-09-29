@@ -21,9 +21,18 @@ export default class QueueSection extends Component {
   }
 
   onbeforeupdate(vnode) {
+    // Flarum's base Component stores the incoming attrs in `this.attrs`, so we
+    // have to read the previous key *before* delegating. Skipping super() would
+    // freeze `this.attrs` at its oninit value: every later redraw would then see
+    // a "changed" key, and since loadQueue() calls m.redraw() itself, that turns
+    // into an unbounded redraw + request loop.
+    const previousKey = this.attrs && this.attrs.refreshKey;
+
+    super.onbeforeupdate(vnode);
+
     // The feeds section bumps this key after creating a feed, so the queue
     // reloads instead of going stale.
-    if (vnode.attrs.refreshKey !== (this.attrs && this.attrs.refreshKey)) {
+    if (vnode.attrs.refreshKey !== previousKey) {
       this.loadQueue();
     }
   }
