@@ -3,6 +3,7 @@ import app from 'flarum/admin/app';
 import Button from 'flarum/common/components/Button';
 import Icon from 'flarum/common/components/Icon';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
+import Select from 'flarum/common/components/Select';
 import tagLabel from 'ext:flarum/tags/common/helpers/tagLabel';
 import FeedPreviewModal from './FeedPreviewModal';
 import FeedRow from './FeedRow';
