@@ -1,5 +1,6 @@
 stezkoy-feed2forum:
   admin:
+    author_missing: "No publishing user is configured. Select an author in the general settings."
     settings:
       general_heading: General settings
       general_help: Global settings applied to all feeds.
@@ -60,6 +61,7 @@ stezkoy-feed2forum:
       publish_mode_queue: Manually
       check_all: Check all feeds now
       check_all_success: Fetch jobs have been queued.
+      fetch_success: Fetch job has been queued for this feed.
       fetch_tooltip: Fetch this feed now
       fetch_error: Could not trigger the feed fetch.
       tag_select_title: Choose tag

@@ -6,7 +6,6 @@ use Flarum\Api\Context as FlarumContext;
 use Flarum\Api\Endpoint;
 use Flarum\Api\Resource\AbstractDatabaseResource;
 use Flarum\Api\Schema;
-use Flarum\Http\RequestUtil;
 use Illuminate\Database\Eloquent\Builder;
 use Stezkoy\Feed2forum\Models\Item;
 use Stezkoy\Feed2forum\Support\ItemPublisher;
@@ -38,11 +37,11 @@ class ItemResource extends AbstractDatabaseResource
             ->orderByDesc('published_at')
             ->orderByDesc('id');
 
-        $status = RequestUtil::extractFilter($context->request)['status'] ?? null;
-
-        if (in_array($status, ['pending', 'published'], true)) {
-            $query->where('status', $status);
-        }
+        // filter[status] is applied by the StatusFilter registered in
+        // extend.php (via the ItemSearcher), not here — when a model has a
+        // registered searcher, the Index endpoint runs that searcher's query
+        // instead of this scoped one, so manual extraction here would settle
+        // on the non-searcher path only.
     }
 
     public function endpoints(): array

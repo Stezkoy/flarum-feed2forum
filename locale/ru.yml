@@ -1,5 +1,6 @@
 stezkoy-feed2forum:
   admin:
+    author_missing: "Не выбран пользователь для публикации. Укажите автора в общих настройках."
     settings:
       general_heading: Общие настройки
       general_help: "Глобальные настройки, применяемые ко всем лентам."
@@ -60,6 +61,7 @@ stezkoy-feed2forum:
       publish_mode_queue: Вручную
       check_all: Проверить все ленты сейчас
       check_all_success: Задачи загрузки добавлены в очередь.
+      fetch_success: Задача загрузки ленты добавлена в очередь.
       fetch_tooltip: Проверить ленту сейчас
       fetch_error: Не удалось запустить проверку ленты.
       tag_select_title: Выбор тега

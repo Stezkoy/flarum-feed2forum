@@ -13,6 +13,12 @@ use Stezkoy\Feed2forum\Models\Item;
 
 class FeedFetcher
 {
+    /**
+     * Hard cap on stored raw article HTML: MEDIUMTEXT holds 16 MB, and the
+     * publisher keeps only a readable plain-text excerpt anyway.
+     */
+    private const MAX_CONTENT_LENGTH = 400000;
+
     private ?FeedIo $feedIoInstance = null;
 
     public function __construct(
@@ -72,7 +78,7 @@ class FeedFetcher
         }
 
         if ($changedById !== []) {
-            $this->bulkUpdate(array_keys($changedById), $changedById);
+            $this->bulkUpdate($changedById);
         }
 
         $newItems = [];
@@ -194,37 +200,66 @@ class FeedFetcher
             ]);
         }
 
-        Item::query()->getConnection()->table('feed2forum_items')->insert($rows);
+        // Through the Eloquent builder (instead of a raw connection table)
+        // so the insert stays bound to the model's table and stays portable
+        // across the database drivers Flarum supports.
+        Item::query()->insert($rows);
     }
 
     /**
-     * Update the changed fields of the given items in a single statement.
+     * Update the changed fields of the given items via the query builder's
+     * upsert() (single round-trip, parameter binding, no hand-written SQL and
+     * no direct PDO access) — keyed by the unique (feed_id, guid) index, which
+     * the items table already has. Although nominally "insert or update", at
+     * this point every row is known to exist (upstream already compared these
+     * payloads against stored rows), so no new row can be created here.
      *
      * @phpstan-param array<int, array{title: string, link: string, content: string, published_at: \DateTimeInterface|\Illuminate\Support\Carbon}> $payloadsById
      */
-    private function bulkUpdate(array $ids, array $payloadsById): void
+    private function bulkUpdate(array $payloadsById): void
     {
-        $connection = Item::query()->getConnection();
+        // The unique key is (feed_id, guid), so feed_id and guid must be part
+        // of each upsert row; fetch them for the affected ids in one query.
+        $known = Item::query()
+            ->whereIn('id', array_map(intval(...), array_keys($payloadsById)))
+            ->get(['id', 'feed_id', 'guid'])
+            ->keyBy('id');
 
-        $case = function (string $column, callable $extract) use ($connection, $payloadsById): string {
-            $parts = '';
+        $now = Carbon::now();
 
-            foreach ($payloadsById as $id => $payload) {
-                $parts .= ' WHEN '.((int) $id).' THEN '.$connection->getPdo()->quote((string) $extract($payload));
+        $rows = [];
+
+        foreach ($payloadsById as $id => $payload) {
+            $knownRow = $known->get($id);
+
+            if ($knownRow === null) {
+                // Row vanished between the change scan and this update (e.g.
+                // concurrent feed deletion); skip rather than insert a stray.
+                continue;
             }
 
-            return 'CASE '.$column.$parts.' END';
-        };
+            $rows[] = [
+                'feed_id' => $knownRow->feed_id,
+                'guid' => $knownRow->guid,
+                'title' => (string) $payload['title'],
+                'link' => (string) $payload['link'],
+                'content' => (string) $payload['content'],
+                'published_at' => $payload['published_at']?->format('Y-m-d H:i:s'),
+                'updated_at' => $now,
+            ];
+        }
 
-        $connection->table('feed2forum_items')
-            ->whereIn('id', $ids)
-            ->update([
-                'title' => $connection->raw($case('id', fn ($payload) => $payload['title'])),
-                'link' => $connection->raw($case('id', fn ($payload) => $payload['link'])),
-                'content' => $connection->raw($case('id', fn ($payload) => $payload['content'])),
-                'published_at' => $connection->raw($case('id', fn ($payload) => $payload['published_at']?->format('Y-m-d H:i:s'))),
-                'updated_at' => Carbon::now(),
-            ]);
+        if ($rows === []) {
+            return;
+        }
+
+        Item::query()->upsert($rows, ['feed_id', 'guid'], [
+            'title',
+            'link',
+            'content',
+            'published_at',
+            'updated_at',
+        ]);
     }
 
     protected function entryGuid(\FeedIo\Feed\Item $entry): string
@@ -245,6 +280,10 @@ class FeedFetcher
 
     protected function entryContent(\FeedIo\Feed\Item $entry): string
     {
-        return (string) ($entry->getValue('content:encoded') ?: ($entry->getValue('description') ?: $entry->getContent()));
+        $content = (string) ($entry->getValue('content:encoded') ?: ($entry->getValue('description') ?: $entry->getContent()));
+
+        // Raw HTML from full-content feeds is unbounded; cap it so a pathologically
+        // large article can neither violate the column limit nor stall the pipeline.
+        return mb_substr($content, 0, self::MAX_CONTENT_LENGTH);
     }
 }

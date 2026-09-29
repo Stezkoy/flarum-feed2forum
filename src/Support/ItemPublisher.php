@@ -17,6 +17,13 @@ use Stezkoy\Feed2forum\Models\Item;
 
 class ItemPublisher
 {
+    /**
+     * Per-process memo of whether the forum has an `original_url` column
+     * (some forks add it). Schema introspection would otherwise run on every
+     * single publish call.
+     */
+    private static ?bool $hasOriginalUrl = null;
+
     public function __construct(
         protected Dispatcher $events,
         protected SettingsRepositoryInterface $settings,
@@ -50,7 +57,7 @@ class ItemPublisher
 
         if (! $user) {
             throw new ValidationException([
-                'author' => 'Please configure the publishing user in the Feed2Forum settings.',
+                'author' => $this->translator->trans('stezkoy-feed2forum.admin.author_missing'),
             ]);
         }
 
@@ -336,7 +343,9 @@ class ItemPublisher
 
     private function setOriginalUrl(Discussion $discussion, ?string $url): void
     {
-        if (! $discussion->getConnection()->getSchemaBuilder()->hasColumn('discussions', 'original_url')) {
+        self::$hasOriginalUrl ??= $discussion->getConnection()->getSchemaBuilder()->hasColumn('discussions', 'original_url');
+
+        if (! self::$hasOriginalUrl) {
             return;
         }
 

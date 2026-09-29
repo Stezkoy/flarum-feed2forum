@@ -114,7 +114,7 @@ export default class FeedsTableSection extends Component {
         method: 'POST',
         url: `${app.forum.attribute('apiUrl')}/feed2forum-feeds/${feed.id()}/fetch`,
       })
-      .then(() => app.alerts.show({ type: 'success' }, this.translate('check_all_success')))
+      .then(() => app.alerts.show({ type: 'success' }, this.translate('fetch_success')))
       .catch(() => app.alerts.show({ type: 'error' }, this.translate('fetch_error')))
       .finally(() => {
         delete this.fetching[feed.id()];
@@ -340,8 +340,7 @@ export default class FeedsTableSection extends Component {
     const url = this.newFeed.url() ? this.newFeed.url().trim() : '';
     const tagId = this.newFeed.tagId();
     const secondaryTagId = this.newFeed.secondaryTagId();
-    const requestedLimit = Number(this.newFeed.publishLimit());
-    const publishLimit = Number.isFinite(requestedLimit) && requestedLimit >= 0 ? requestedLimit : 5;
+    const publishLimit = this.parseLimit(this.newFeed.publishLimit());
 
     if (!title || !url) return;
 
@@ -396,7 +395,14 @@ export default class FeedsTableSection extends Component {
   }
 
   parseLimit(value) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+    // Matches the docs: leave empty (or invalid) for the default 5,
+    // type 0 explicitly for unlimited.
+    const raw = String(value ?? '').trim();
+
+    if (raw === '') return 5;
+
+    const parsed = Number(raw);
+
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 5;
   }
 }
