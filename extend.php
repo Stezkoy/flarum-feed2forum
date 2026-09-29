@@ -37,8 +37,11 @@ return [
     (new Extend\Settings())
         ->default('stezkoy-feed2forum.author_user_id', '')
         ->default('stezkoy-feed2forum.fetch_interval', 60)
-        ->default('stezkoy-feed2forum.show_source_link', true)
-        ->default('stezkoy-feed2forum.use_article_date', true),
+        // Settings are strings end-to-end: a boolean default here reaches the
+        // admin payload as JSON true, and String(true) !== '1' rendered the
+        // toggles off while the backend treated the setting as on.
+        ->default('stezkoy-feed2forum.show_source_link', '1')
+        ->default('stezkoy-feed2forum.use_article_date', '1'),
 
     (new Extend\Console())
         ->command(FetchFeeds::class)

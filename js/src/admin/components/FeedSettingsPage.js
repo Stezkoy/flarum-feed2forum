@@ -171,7 +171,7 @@ export default class FeedSettingsPage extends ExtensionPage {
   useArticleDateSetting() {
     const key = `${PREFIX}.use_article_date`;
     const stream = this.setting(key, '1');
-    const state = String(stream()) !== '0';
+    const state = String(stream()) === '1';
 
     return m('.Form-group', [
       m(
