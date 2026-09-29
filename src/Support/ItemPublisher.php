@@ -10,6 +10,7 @@ use Flarum\Settings\SettingsRepositoryInterface;
 use Flarum\Tags\Tag;
 use Flarum\User\User;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Str;
 use Stezkoy\Feed2forum\Models\Item;
@@ -18,7 +19,8 @@ class ItemPublisher
 {
     public function __construct(
         protected Dispatcher $events,
-        protected SettingsRepositoryInterface $settings
+        protected SettingsRepositoryInterface $settings,
+        protected Translator $translator
     ) {
     }
 
@@ -205,7 +207,7 @@ class ItemPublisher
         return sprintf(
             '[url=%s]%s[/url]',
             str_replace(['[', ']'], ['%5B', '%5D'], $link),
-            app('translator')->trans('stezkoy-feed2forum.forum.original_article_link')
+            $this->translator->trans('stezkoy-feed2forum.forum.original_article_link')
         );
     }
 
@@ -217,11 +219,31 @@ class ItemPublisher
             return '';
         }
 
+        $html = $this->stripUnsupportedTags($html);
+        $html = $this->convertImages($html);
+        $html = $this->convertLinks($html);
+        $html = $this->normaliseBlocks($html);
+
+        return $this->cleanText($html);
+    }
+
+    /**
+     * Remove scripts, styles and embedded/iframe/plugin content entirely.
+     */
+    private function stripUnsupportedTags(string $html): string
+    {
         $html = preg_replace('/<(script|style)\b[^>]*>.*?<\/\1>/is', '', $html);
         $html = preg_replace('/<(iframe|object|embed|form)\b[^>]*>.*?<\/\1>/is', '', $html);
-        $html = preg_replace('/<(iframe|object|embed)\b[^>]*\/?>/is', '', $html);
 
-        $html = preg_replace_callback(
+        return preg_replace('/<(iframe|object|embed)\b[^>]*\/?>/is', '', $html);
+    }
+
+    /**
+     * Convert <img> tags to BBCode; drop data:/blob: images and empty sources.
+     */
+    private function convertImages(string $html): string
+    {
+        return preg_replace_callback(
             '/<img\b[^>]*\bsrc\s*=\s*(["\'])(.*?)\1[^>]*>/is',
             function (array $m): string {
                 $src = trim(html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
@@ -234,8 +256,14 @@ class ItemPublisher
             },
             $html
         );
+    }
 
-        $html = preg_replace_callback(
+    /**
+     * Convert <a> tags to BBCode except for javascript/mailto/tel links.
+     */
+    private function convertLinks(string $html): string
+    {
+        return preg_replace_callback(
             '/<a\b([^>]*)>(.*?)<\/a>/is',
             function (array $m): string {
                 $href = '';
@@ -258,11 +286,26 @@ class ItemPublisher
             },
             $html
         );
+    }
 
+    /**
+     * Turn list items, line breaks and block elements into blank-line
+     * separated paragraphs.
+     */
+    private function normaliseBlocks(string $html): string
+    {
         $html = preg_replace('/<li\b[^>]*>/i', "\n- ", $html);
         $html = preg_replace('/<br\s*\/?>/i', "\n", $html);
-        $html = preg_replace('/<\/?(p|div|ul|ol|h[1-6]|blockquote|tr|table|thead|tbody|section|article|header|footer|pre|figcaption|figure|dl|dd|dt)\b[^>]*>/i', "\n\n", $html);
 
+        return preg_replace('/<\/?(p|div|ul|ol|h[1-6]|blockquote|tr|table|thead|tbody|section|article|header|footer|pre|figcaption|figure|dl|dd|dt)\b[^>]*>/i', "\n\n", $html);
+    }
+
+    /**
+     * Collapse the remaining markup to readable plain text with normalised
+     * whitespace, capped at 60k characters, and pad very short results.
+     */
+    private function cleanText(string $html): string
+    {
         $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $text = str_replace("\r", '', $text);
         $text = preg_replace('/[ \t\x{00A0}]+/u', ' ', $text);

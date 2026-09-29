@@ -16,7 +16,8 @@ use Tobyz\JsonApiServer\Context;
 class ItemResource extends AbstractDatabaseResource
 {
     public function __construct(
-        protected ItemPublisher $publisher
+        protected ItemPublisher $publisher,
+        protected WorkLog $log
     ) {
     }
 
@@ -33,7 +34,7 @@ class ItemResource extends AbstractDatabaseResource
     public function scope(Builder $query, Context $context): void
     {
         $query
-            ->with(['feed', 'discussion'])
+            ->with(['feed'])
             ->orderByDesc('published_at')
             ->orderByDesc('id');
 
@@ -49,8 +50,8 @@ class ItemResource extends AbstractDatabaseResource
         return [
             Endpoint\Show::make()
                 ->admin()
-                ->defaultInclude(['feed', 'discussion'])
-                ->eagerLoad(['feed', 'discussion']),
+                ->defaultInclude(['feed'])
+                ->eagerLoad(['feed']),
             Endpoint\Index::make()
                 ->admin()
                 ->paginate(20, 100)
@@ -108,9 +109,9 @@ class ItemResource extends AbstractDatabaseResource
         try {
             $discussion = $this->publisher->publish($item);
 
-            WorkLog::info('Published "'.$item->title.'" as discussion #'.$discussion->id.' (manual).', $item->feed_id);
+            $this->log->info('Published "'.$item->title.'" as discussion #'.$discussion->id.' (manual).', $item->feed_id);
         } catch (\Throwable $e) {
-            WorkLog::error('Failed to publish "'.$item->title.'": '.$e->getMessage(), $item->feed_id);
+            $this->log->error('Failed to publish "'.$item->title.'": '.$e->getMessage(), $item->feed_id);
 
             throw $e;
         }

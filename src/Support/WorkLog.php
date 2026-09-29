@@ -5,6 +5,11 @@ namespace Stezkoy\Feed2forum\Support;
 use Carbon\Carbon;
 use Stezkoy\Feed2forum\Models\LogEntry;
 
+/**
+ * Work log for the admin panel. Bound as a singleton in the container and
+ * injected into the classes that report events, so the logging backend can be
+ * swapped or mocked in tests.
+ */
 class WorkLog
 {
     /**
@@ -13,7 +18,7 @@ class WorkLog
      */
     public const MAX_ROWS = 500;
 
-    public static function add(string $level, string $message, ?int $feedId = null): void
+    public function add(string $level, string $message, ?int $feedId = null): void
     {
         try {
             LogEntry::query()->create([
@@ -23,23 +28,23 @@ class WorkLog
                 'created_at' => Carbon::now(),
             ]);
 
-            self::prune();
+            $this->prune();
         } catch (\Throwable) {
             // Logging must never break fetching or publishing.
         }
     }
 
-    public static function info(string $message, ?int $feedId = null): void
+    public function info(string $message, ?int $feedId = null): void
     {
-        self::add('info', $message, $feedId);
+        $this->add('info', $message, $feedId);
     }
 
-    public static function error(string $message, ?int $feedId = null): void
+    public function error(string $message, ?int $feedId = null): void
     {
-        self::add('error', $message, $feedId);
+        $this->add('error', $message, $feedId);
     }
 
-    private static function prune(): void
+    private function prune(): void
     {
         $minId = LogEntry::query()
             ->orderByDesc('id')

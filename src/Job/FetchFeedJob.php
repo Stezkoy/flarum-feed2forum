@@ -19,24 +19,25 @@ class FetchFeedJob extends AbstractJob
     public function handle(
         Queue $queue,
         FeedFetcher $fetcher,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        WorkLog $log
     ): void {
         $reset = $fetcher->resetOrphanedItems($this->feed);
 
         if ($reset > 0) {
-            WorkLog::info('Restored '.$reset.' item(s) of "'.$this->feed->title.'" whose discussions were deleted on the forum.', $this->feed->id);
+            $log->info('Restored '.$reset.' item(s) of "'.$this->feed->title.'" whose discussions were deleted on the forum.', $this->feed->id);
         }
 
         try {
             $items = $fetcher->fetchFeed($this->feed);
         } catch (\Throwable $e) {
             $logger->error('[Feed2Forum] Failed to fetch feed '.$this->feed->id.': '.$e::class.': '.$e->getMessage());
-            WorkLog::error('Fetch failed for "'.$this->feed->title.'": '.$e->getMessage(), $this->feed->id);
+            $log->error('Fetch failed for "'.$this->feed->title.'": '.$e->getMessage(), $this->feed->id);
 
             return;
         }
 
-        WorkLog::info(
+        $log->info(
             'Checked "'.$this->feed->title.'": '.(count($items) > 0 ? count($items).' new item(s).' : 'no new items.'),
             $this->feed->id
         );
@@ -66,6 +67,6 @@ class FetchFeedJob extends AbstractJob
             $queue->push(new PublishItemJob($item));
         }
 
-        WorkLog::info('Queued '.$candidates->count().' item(s) of "'.$this->feed->title.'" for publishing.', $this->feed->id);
+        $log->info('Queued '.$candidates->count().' item(s) of "'.$this->feed->title.'" for publishing.', $this->feed->id);
     }
 }

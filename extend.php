@@ -3,15 +3,12 @@
 namespace Stezkoy\Feed2forum;
 
 use Flarum\Extend;
-use Flarum\Search\Database\DatabaseSearchDriver;
 use Stezkoy\Feed2forum\Api\Resource\FeedResource;
 use Stezkoy\Feed2forum\Api\Resource\ItemResource;
 use Stezkoy\Feed2forum\Api\Resource\LogResource;
 use Stezkoy\Feed2forum\Console\FetchFeeds;
 use Stezkoy\Feed2forum\Console\FeedFetchSchedule;
-use Stezkoy\Feed2forum\Models\Item;
-use Stezkoy\Feed2forum\Search\Filter\StatusFilter;
-use Stezkoy\Feed2forum\Search\ItemSearcher;
+use Stezkoy\Feed2forum\Provider\WorkLogServiceProvider;
 
 return [
     (new Extend\Frontend('admin'))
@@ -24,9 +21,8 @@ return [
     new Extend\ApiResource(ItemResource::class),
     new Extend\ApiResource(LogResource::class),
 
-    (new Extend\SearchDriver(DatabaseSearchDriver::class))
-        ->addSearcher(Item::class, ItemSearcher::class)
-        ->addFilter(ItemSearcher::class, StatusFilter::class),
+    (new Extend\ServiceProvider())
+        ->register(WorkLogServiceProvider::class),
 
     (new Extend\Settings())
         ->default('stezkoy-feed2forum.author_user_id', '')
