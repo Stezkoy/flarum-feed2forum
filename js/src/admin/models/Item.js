@@ -13,6 +13,10 @@ export default class Item extends Model {
     return Model.attribute('status').call(this);
   }
 
+  wasDeleted() {
+    return Model.attribute('was_deleted').call(this);
+  }
+
   discussionId() {
     return Model.attribute('discussion_id').call(this);
   }
