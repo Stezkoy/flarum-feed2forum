@@ -42,7 +42,7 @@ export default class FeedSettingsPage extends ExtensionPage {
       '.ExtensionPage-settings',
       m('.container', [
         m('.Feed2forumSettings', [
-          this.section('general_heading', [this.authorSetting(), this.fetchIntervalSetting(), this.showSourceLinkSetting()], 'general_help'),
+          this.section('general_heading', [this.authorSetting(), this.fetchIntervalSetting(), this.useArticleDateSetting(), this.showSourceLinkSetting()], 'general_help'),
           m(QueueSection, { refreshKey: this.queueRefreshKey }),
           m(LogSection),
           m(FeedsTableSection, { onFeedsChanged: () => this.bumpQueue() }),
@@ -165,6 +165,27 @@ export default class FeedSettingsPage extends ExtensionPage {
         oninput: withAttr('value', stream),
       }),
       m('p.helpText', this.translate('fetch_interval_help')),
+    ]);
+  }
+
+  useArticleDateSetting() {
+    const key = `${PREFIX}.use_article_date`;
+    const stream = this.setting(key, '1');
+    const state = String(stream()) !== '0';
+
+    return m('.Form-group', [
+      m(
+        Switch,
+        {
+          state,
+          onchange: (value) => {
+            stream(value ? '1' : '0');
+            m.redraw();
+          },
+        },
+        this.translate('use_article_date_label')
+      ),
+      m('p.helpText', this.translate('use_article_date_help')),
     ]);
   }
 

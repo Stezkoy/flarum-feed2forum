@@ -147,7 +147,8 @@
   }
 }
 
-.Feed2forumRestoredBadge {
+.Feed2forumRestoredBadge,
+.Feed2forumEditedBadge {
   display: inline-block;
   margin-left: 8px;
   padding: 1px 8px;
@@ -157,6 +158,22 @@
   font-size: 11px;
   font-weight: bold;
   vertical-align: middle;
+}
+
+.Feed2forumEditModal {
+  .Feed2forumEditContent {
+    width: 100%;
+    min-height: 280px;
+    resize: vertical;
+    font-family: monospace;
+    white-space: pre-wrap;
+  }
+
+  .Feed2forumEditControls {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
 }
 
 .Feed2forumQueueToolbar {

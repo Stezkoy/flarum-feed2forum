@@ -2,6 +2,7 @@ import Component from 'flarum/common/Component';
 import app from 'flarum/admin/app';
 import Button from 'flarum/common/components/Button';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
+import EditItemModal from './EditItemModal';
 
 const PREFIX = 'stezkoy-feed2forum';
 
@@ -43,6 +44,16 @@ export default class QueueSection extends Component {
 
   translate(key, vars = {}) {
     return app.translator.trans(`${PREFIX}.admin.settings.${key}`, vars);
+  }
+
+  // Avoid the Chrome "Blocked aria-hidden on an element because its
+  // descendant retained focus" warning when a modal opens.
+  openModal(loader, attrs) {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    app.modal.show(loader, attrs);
   }
 
   loadQueue() {
@@ -117,6 +128,10 @@ export default class QueueSection extends Component {
     return feed ? feed.title() : '—';
   }
 
+  displayTitle(row) {
+    return row.editedTitle() || row.title();
+  }
+
   queueBody() {
     if (this.loadingQueue) return m(LoadingIndicator, { display: 'block' });
 
@@ -148,8 +163,9 @@ export default class QueueSection extends Component {
           m('.Feed2forumTable-row', [
             m('.Feed2forumTable-cell', this.feedTitle(row)),
             m('.Feed2forumTable-cell.Feed2forumTable-cell--grow', [
-              row.title(),
+              this.displayTitle(row),
               row.wasDeleted() ? m('span.Feed2forumRestoredBadge', this.translate('queue_restored_badge')) : null,
+              row.editedTitle() ? m('span.Feed2forumEditedBadge', this.translate('queue_edited_badge')) : null,
             ]),
             m('.Feed2forumTable-cell', row.publishedAt() ? dayjs(row.publishedAt()).format('YYYY-MM-DD HH:mm') : '—'),
             m('.Feed2forumTable-cell.Feed2forumTable-actions', [
@@ -163,6 +179,12 @@ export default class QueueSection extends Component {
                 },
                 this.translate('queue_publish')
               ),
+              m(Button, {
+                className: 'Button Button--icon',
+                icon: 'fas fa-pen',
+                title: this.translate('queue_edit_tooltip'),
+                onclick: () => this.openModal(EditItemModal, { item: row, onSaved: () => this.loadQueue() }),
+              }),
               m(Button, {
                 className: 'Button Button--icon',
                 icon: 'fas fa-trash',

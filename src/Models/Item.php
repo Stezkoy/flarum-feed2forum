@@ -21,6 +21,8 @@ class Item extends AbstractModel
         'status',
         'was_deleted',
         'discussion_id',
+        'edited_title',
+        'edited_content',
     ];
 
     protected $casts = [

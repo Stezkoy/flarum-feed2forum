@@ -67,24 +67,37 @@ class ItemPublisher
 
     private function createDiscussionForItem(Item $item, User $author): Discussion
     {
-        $discussion = Discussion::start($this->discussionTitle($item->title), $author);
-        $discussion->created_at = $item->published_at ?: Carbon::now();
+        // The discussion is dated either with the article's RSS publication
+        // date (documented default) or with the approval moment, depending on
+        // the use_article_date setting.
+        $date = $this->useArticleDate() ? ($item->published_at ?: Carbon::now()) : Carbon::now();
+
+        $discussion = Discussion::start($this->discussionTitle($item), $author);
+        $discussion->created_at = $date;
         $this->setOriginalUrl($discussion, $item->link);
         $discussion->save();
 
         $articlePost = new CommentPost();
         $articlePost->discussion_id = $discussion->id;
-        $articlePost->created_at = $item->published_at ?: Carbon::now();
+        $articlePost->created_at = $date;
         $articlePost->user_id = $author->id;
         $articlePost->ip_address = '';
         $articlePost->is_private = false;
         $articlePost->setRelation('discussion', $discussion);
         $articlePost->setRelation('user', $author);
 
-        $articleContent = $this->articlePostContent($item);
+        $articleContent = $this->composePostContent($item);
+
+        // Pre-publish edits from the approval queue are the final post text:
+        // use them verbatim, no re-conversion.
+        $edited = trim((string) $item->edited_content);
+
+        if ($edited !== '') {
+            $articleContent = $edited;
+        }
 
         if ($articleContent === '') {
-            $articleContent = Text::plainText($item->content ?? '', 500) ?: $this->discussionTitle($item->title);
+            $articleContent = Text::plainText($item->content ?? '', 500) ?: $this->discussionTitle($item);
         }
 
         $articlePost->setContentAttribute($articleContent, $author);
@@ -166,9 +179,17 @@ class ItemPublisher
             ->values();
     }
 
-    private function discussionTitle(?string $title): string
+    private function discussionTitle(Item $item): string
     {
-        $title = trim(preg_replace('/\s+/u', ' ', (string) $title));
+        // Pre-published title edits win over the feed title; they are only
+        // whitespace-normalised (no 80-char ellipsis — the admin chose it).
+        $edited = trim((string) $item->edited_title);
+
+        if ($edited !== '') {
+            return mb_substr(trim(preg_replace('/\s+/u', ' ', $edited)), 0, 255) ?: 'RSS Article';
+        }
+
+        $title = trim(preg_replace('/\s+/u', ' ', (string) $item->title));
 
         if ($title === '') {
             $title = 'RSS Article';
@@ -185,7 +206,12 @@ class ItemPublisher
         return $title;
     }
 
-    private function articlePostContent(Item $item): string
+    /**
+     * The exact text that will be posted for this item (source link when
+     * enabled + converted article body). Also shown in the approval queue's
+     * edit dialog; pre-publish edits replace it verbatim.
+     */
+    public function composePostContent(Item $item): string
     {
         $body = $this->htmlToPostContent($item->content ?? '');
         $link = trim((string) $item->link);
@@ -202,6 +228,21 @@ class ItemPublisher
     private function showSourceLink(): bool
     {
         $value = $this->settings->get('stezkoy-feed2forum.show_source_link');
+
+        if ($value === null) {
+            return true;
+        }
+
+        return filter_var((string) $value, FILTER_VALIDATE_BOOL);
+    }
+
+    /**
+     * Whether imported discussions are dated with the article's RSS
+     * publication date (default) or with the approval moment.
+     */
+    private function useArticleDate(): bool
+    {
+        $value = $this->settings->get('stezkoy-feed2forum.use_article_date');
 
         if ($value === null) {
             return true;

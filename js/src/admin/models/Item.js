@@ -17,6 +17,18 @@ export default class Item extends Model {
     return Model.attribute('was_deleted').call(this);
   }
 
+  editedTitle() {
+    return Model.attribute('edited_title').call(this);
+  }
+
+  editedContent() {
+    return Model.attribute('edited_content').call(this);
+  }
+
+  composedContent() {
+    return Model.attribute('composed_content').call(this);
+  }
+
   discussionId() {
     return Model.attribute('discussion_id').call(this);
   }

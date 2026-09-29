@@ -56,6 +56,10 @@ class ItemResource extends AbstractDatabaseResource
                 ->paginate(20, 100)
                 ->defaultInclude(['feed'])
                 ->eagerLoad(['feed']),
+            // PATCH /api/feed2forum-items/{id} — pre-publish edits from the
+            // approval queue (edited_title / edited_content).
+            Endpoint\Update::make()
+                ->admin(),
             Endpoint\Delete::make()
                 ->admin(),
             Endpoint\Endpoint::make('publish')
@@ -90,6 +94,25 @@ class ItemResource extends AbstractDatabaseResource
             Schema\Relationship\ToOne::make('feed')
                 ->type('feed2forum-feeds')
                 ->includable(),
+
+            // Pre-publish edits. Separate columns so feed-driven change
+            // detection never clobbers them. Setting null reverts to the
+            // original feed data.
+            Schema\Str::make('edited_title')
+                ->nullable()
+                ->maxLength(255)
+                ->writable(),
+            Schema\Str::make('edited_content')
+                ->nullable()
+                ->maxLength(400000)
+                ->writable(),
+
+            // The exact text that will be posted (converted body + optional
+            // source link). Only on Show — the edit dialog loads a single
+            // item, and converting every queue row would be wasteful.
+            Schema\Str::make('composed_content')
+                ->visible(fn (Item $item, FlarumContext $context) => $context->showing())
+                ->get(fn (Item $item) => $this->publisher->composePostContent($item)),
         ];
     }
 

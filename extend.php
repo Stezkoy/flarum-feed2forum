@@ -37,7 +37,8 @@ return [
     (new Extend\Settings())
         ->default('stezkoy-feed2forum.author_user_id', '')
         ->default('stezkoy-feed2forum.fetch_interval', 60)
-        ->default('stezkoy-feed2forum.show_source_link', true),
+        ->default('stezkoy-feed2forum.show_source_link', true)
+        ->default('stezkoy-feed2forum.use_article_date', true),
 
     (new Extend\Console())
         ->command(FetchFeeds::class)
