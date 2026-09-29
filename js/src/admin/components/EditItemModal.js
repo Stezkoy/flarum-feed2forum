@@ -18,8 +18,11 @@ export default class EditItemModal extends Modal {
     this.item = this.attrs.item;
     this.saving = false;
 
-    this.title = this.item.editedTitle() ?? this.item.title() ?? '';
-    this.content = this.item.editedContent() ?? '';
+    // NOTE: Flarum's Modal reserves the method names title()/content() —
+    // state properties must NOT use those names (shadowing them kills the
+    // modal with "this.title is not a function").
+    this.editTitle = this.item.editedTitle() ?? this.item.title() ?? '';
+    this.editContent = this.item.editedContent() ?? '';
     this.loadedComposed = this.item.editedContent() != null;
 
     // The converted post text is only serialized on Show — fetch the fresh
@@ -31,7 +34,7 @@ export default class EditItemModal extends Modal {
         .find('feed2forum-items', String(this.item.id()))
         .then((fresh) => {
           this.item = fresh;
-          this.content = fresh.composedContent() ?? '';
+          this.editContent = fresh.composedContent() ?? '';
         })
         .catch(() => app.alerts.show({ type: 'error' }, app.translator.trans(`${PREFIX}.admin.settings.edit_load_error`)))
         .finally(() => {
@@ -56,8 +59,8 @@ export default class EditItemModal extends Modal {
 
     this.item
       .save({
-        edited_title: this.title.trim() || null,
-        edited_content: this.content.trim() || null,
+        edited_title: this.editTitle.trim() || null,
+        edited_content: this.editContent.trim() || null,
       })
       .then(() => {
         app.alerts.show({ type: 'success' }, app.translator.trans(`${PREFIX}.admin.settings.edit_saved`));
@@ -74,8 +77,8 @@ export default class EditItemModal extends Modal {
   }
 
   reset() {
-    this.title = this.item.title() ?? '';
-    this.content = '';
+    this.editTitle = this.item.title() ?? '';
+    this.editContent = '';
   }
 
   content() {
@@ -87,9 +90,9 @@ export default class EditItemModal extends Modal {
               m('label', app.translator.trans(`${PREFIX}.admin.settings.edit_title_label`)),
               m('input.FormControl', {
                 type: 'text',
-                value: this.title,
+                value: this.editTitle,
                 oninput: (e) => {
-                  this.title = e.target.value;
+                  this.editTitle = e.target.value;
                 },
               }),
             ]),
@@ -97,9 +100,9 @@ export default class EditItemModal extends Modal {
               m('label', app.translator.trans(`${PREFIX}.admin.settings.edit_content_label`)),
               m('p.helpText', app.translator.trans(`${PREFIX}.admin.settings.edit_content_help`)),
               m('textarea.FormControl.Feed2forumEditContent', {
-                value: this.content,
+                value: this.editContent,
                 oninput: (e) => {
-                  this.content = e.target.value;
+                  this.editContent = e.target.value;
                 },
               }),
             ]),
