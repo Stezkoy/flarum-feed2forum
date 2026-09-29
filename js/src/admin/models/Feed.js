@@ -33,6 +33,10 @@ export default class Feed extends Model {
     return Model.hasOne('tag').call(this);
   }
 
+  secondaryTag() {
+    return Model.hasOne('secondaryTag').call(this);
+  }
+
   createdAt() {
     return Model.attribute('created_at', Model.transformDate).call(this);
   }

@@ -13,10 +13,17 @@ use Stezkoy\Feed2forum\Models\LogEntry;
 class WorkLog
 {
     /**
-     * Hard cap on stored rows: every insert prunes the table down to this
-     * size, so the log can never grow unbounded on the server.
+     * Hard cap on stored rows: inserts prune the table down to this size, so
+     * the log can never grow unbounded on the server.
      */
     public const MAX_ROWS = 500;
+
+    /**
+     * Prune only every Nth insert: between prunes the table may exceed the
+     * cap slightly, which is harmless, and the hot path saves the two extra
+     * queries almost every time.
+     */
+    public const PRUNE_ONE_IN = 10;
 
     public function add(string $level, string $message, ?int $feedId = null): void
     {
@@ -28,7 +35,9 @@ class WorkLog
                 'created_at' => Carbon::now(),
             ]);
 
-            $this->prune();
+            if (random_int(1, self::PRUNE_ONE_IN) === 1) {
+                $this->prune();
+            }
         } catch (\Throwable) {
             // Logging must never break fetching or publishing.
         }

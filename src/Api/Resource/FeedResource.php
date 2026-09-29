@@ -8,18 +8,22 @@ use Flarum\Api\Resource\AbstractDatabaseResource;
 use Flarum\Api\Schema;
 use Flarum\Foundation\ValidationException;
 use Illuminate\Contracts\Queue\Queue;
+use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
+use Psr\Log\LoggerInterface;
 use Stezkoy\Feed2forum\Job\FetchFeedJob;
 use Stezkoy\Feed2forum\Models\Feed;
 use Stezkoy\Feed2forum\Support\FeedFetcher;
+use Stezkoy\Feed2forum\Support\Text;
 use Tobyz\JsonApiServer\Context;
 
 class FeedResource extends AbstractDatabaseResource
 {
     public function __construct(
         protected Queue $queue,
-        protected FeedFetcher $fetcher
+        protected FeedFetcher $fetcher,
+        protected LoggerInterface $logger,
+        protected Translator $translator
     ) {
     }
 
@@ -36,7 +40,7 @@ class FeedResource extends AbstractDatabaseResource
     public function scope(Builder $query, Context $context): void
     {
         $query
-            ->with('tag')
+            ->with(['tag', 'secondaryTag'])
             ->orderByDesc('created_at');
     }
 
@@ -45,22 +49,22 @@ class FeedResource extends AbstractDatabaseResource
         return [
             Endpoint\Show::make()
                 ->admin()
-                ->defaultInclude(['tag'])
-                ->eagerLoad(['tag']),
+                ->defaultInclude(['tag', 'secondaryTag'])
+                ->eagerLoad(['tag', 'secondaryTag']),
             Endpoint\Create::make()
                 ->admin()
-                ->defaultInclude(['tag'])
-                ->eagerLoad(['tag']),
+                ->defaultInclude(['tag', 'secondaryTag'])
+                ->eagerLoad(['tag', 'secondaryTag']),
             Endpoint\Update::make()
                 ->admin()
-                ->defaultInclude(['tag'])
-                ->eagerLoad(['tag']),
+                ->defaultInclude(['tag', 'secondaryTag'])
+                ->eagerLoad(['tag', 'secondaryTag']),
             Endpoint\Delete::make()
                 ->admin(),
             Endpoint\Index::make()
                 ->admin()
-                ->defaultInclude(['tag'])
-                ->eagerLoad(['tag']),
+                ->defaultInclude(['tag', 'secondaryTag'])
+                ->eagerLoad(['tag', 'secondaryTag']),
             Endpoint\Endpoint::make('preview')
                 ->route('GET', '/{id}/preview')
                 ->admin()
@@ -123,6 +127,9 @@ class FeedResource extends AbstractDatabaseResource
             Schema\Relationship\ToOne::make('tag')
                 ->type('tags')
                 ->includable(),
+            Schema\Relationship\ToOne::make('secondaryTag')
+                ->type('tags')
+                ->includable(),
         ];
     }
 
@@ -142,7 +149,7 @@ class FeedResource extends AbstractDatabaseResource
                     'title' => (string) $item->getTitle(),
                     'link' => (string) $item->getLink(),
                     'published_at' => $publishedAt instanceof \DateTimeInterface ? $publishedAt->format(DATE_ATOM) : null,
-                    'excerpt' => $this->plainText((string) $content, 180),
+                    'excerpt' => Text::plainText((string) $content, 180),
                 ];
 
                 if (count($items) >= 20) {
@@ -150,8 +157,20 @@ class FeedResource extends AbstractDatabaseResource
                 }
             }
         } catch (\Throwable $e) {
+            // The full exception may contain network internals (cURL errors,
+            // resolved hosts) — it goes to the system log only. The admin gets
+            // a safe message plus the HTTP status when one is available.
+            $this->logger->error('[Feed2Forum] Preview failed for feed '.$feed->id.' ('.$feed->url.'): '.$e::class.': '.$e->getMessage());
+
+            $statusCode = null;
+
+            if (method_exists($e, 'getResponse') && ($response = $e->getResponse()) !== null) {
+                $statusCode = $response->getStatusCode();
+            }
+
             throw new ValidationException([
-                'url' => $e->getMessage(),
+                'url' => $this->translator->trans('stezkoy-feed2forum.admin.preview_fetch_failed')
+                    .($statusCode !== null ? ' (HTTP '.$statusCode.')' : ''),
             ]);
         }
 
@@ -166,13 +185,5 @@ class FeedResource extends AbstractDatabaseResource
                 ],
             ],
         ];
-    }
-
-    private function plainText(string $content, int $limit): string
-    {
-        $text = trim(html_entity_decode(strip_tags($content), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
-        $text = preg_replace('/\s+/u', ' ', $text);
-
-        return Str::limit($text, $limit);
     }
 }

@@ -77,6 +77,7 @@ stezkoy-feed2forum:
       new_feed_error: Не удалось добавить ленту.
       new_feed_url_invalid: "URL должен начинаться с http:// или https://."
       preview_tooltip: Предпросмотр
+      preview_fetch_failed: "Не удалось прочитать ленту. Проверьте URL и попробуйте снова; подробности — в системном журнале."
       preview_title: '{title} — предпросмотр'
       preview_close: Закрыть
       preview_empty: В ленте пока нет статей.

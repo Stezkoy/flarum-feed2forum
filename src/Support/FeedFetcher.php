@@ -42,10 +42,13 @@ class FeedFetcher
         $payloadByGuid = [];
 
         foreach ($result->getFeed() as $entry) {
+            $content = $this->entryContent($entry);
+
             $payloadByGuid[$this->entryGuid($entry)] = [
                 'title' => mb_substr(trim((string) $entry->getTitle()), 0, 255),
                 'link' => trim((string) $entry->getLink()),
-                'content' => $this->entryContent($entry),
+                'content' => $content,
+                'content_hash' => md5($content),
                 'published_at' => $entry->getLastModified() ?: Carbon::now(),
             ];
         }
@@ -53,11 +56,12 @@ class FeedFetcher
         $guids = array_keys($payloadByGuid);
 
         // Fetch the known rows in one query, then compare in memory so that
-        // unchanged articles produce no UPDATE statements at all.
+        // unchanged articles produce no UPDATE statements at all. Only the
+        // hash of the stored content is loaded — never the full text.
         $known = Item::query()
             ->where('feed_id', $feed->id)
             ->whereIn('guid', $guids)
-            ->get(['id', 'guid', 'title', 'link', 'content', 'published_at'])
+            ->get(['id', 'guid', 'title', 'link', 'content_hash', 'published_at'])
             ->keyBy('guid');
 
         $newGuids = [];
@@ -124,10 +128,12 @@ class FeedFetcher
 
         $skipped = array_slice($items, $limit);
 
-        foreach ($skipped as $item) {
-            $item->status = 'skipped';
-            $item->save();
-        }
+        // One bulk write instead of a per-row save loop; Eloquent stamps
+        // updated_at itself. The in-memory $skipped objects are discarded
+        // (only $kept is returned), so no per-row state refresh is needed.
+        Item::query()
+            ->whereIn('id', array_map(fn (Item $item) => $item->id, $skipped))
+            ->update(['status' => 'skipped']);
 
         $this->log->info(
             'Skipped '.count($skipped).' older item(s) of "'.$feed->title.'" (publish limit '.$limit.').',
@@ -175,9 +181,11 @@ class FeedFetcher
         $payloadTimestamp = $payload['published_at'] ? $payload['published_at']->getTimestamp() : null;
         $rowTimestamp = $row->published_at ? $row->published_at->getTimestamp() : null;
 
+        // Content is diffed by hash: rows predating content_hash have a NULL
+        // hash and are treated as changed once, which lazily backfills it.
         return (string) $row->title !== (string) $payload['title']
             || (string) $row->link !== (string) $payload['link']
-            || (string) $row->content !== (string) $payload['content']
+            || $row->content_hash !== $payload['content_hash']
             || $rowTimestamp !== $payloadTimestamp;
     }
 
@@ -214,7 +222,7 @@ class FeedFetcher
      * this point every row is known to exist (upstream already compared these
      * payloads against stored rows), so no new row can be created here.
      *
-     * @phpstan-param array<int, array{title: string, link: string, content: string, published_at: \DateTimeInterface|\Illuminate\Support\Carbon}> $payloadsById
+     * @phpstan-param array<int, array{title: string, link: string, content: string, content_hash: string, published_at: \DateTimeInterface|\Illuminate\Support\Carbon}> $payloadsById
      */
     private function bulkUpdate(array $payloadsById): void
     {
@@ -244,6 +252,7 @@ class FeedFetcher
                 'title' => (string) $payload['title'],
                 'link' => (string) $payload['link'],
                 'content' => (string) $payload['content'],
+                'content_hash' => (string) $payload['content_hash'],
                 'published_at' => $payload['published_at']?->format('Y-m-d H:i:s'),
                 'updated_at' => $now,
             ];
@@ -257,6 +266,7 @@ class FeedFetcher
             'title',
             'link',
             'content',
+            'content_hash',
             'published_at',
             'updated_at',
         ]);

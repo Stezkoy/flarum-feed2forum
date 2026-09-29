@@ -15,6 +15,8 @@ use Flarum\Search\SearchState;
  */
 class StatusFilter implements FilterInterface
 {
+    private const STATUSES = ['pending', 'published', 'skipped'];
+
     public function getFilterKey(): string
     {
         return 'status';
@@ -22,7 +24,13 @@ class StatusFilter implements FilterInterface
 
     public function filter(SearchState $state, string|array $value, bool $negate): void
     {
-        $values = array_values((array) $value);
+        // Unknown values are ignored instead of silently producing an empty
+        // result set, which is easier to notice and debug.
+        $values = array_values(array_intersect((array) $value, self::STATUSES));
+
+        if ($values === []) {
+            return;
+        }
 
         if ($negate) {
             $state->getQuery()->whereNotIn('status', $values);

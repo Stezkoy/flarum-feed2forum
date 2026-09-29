@@ -77,6 +77,7 @@ stezkoy-feed2forum:
       new_feed_error: Could not add the feed.
       new_feed_url_invalid: "The URL must start with http:// or https://."
       preview_tooltip: Preview
+      preview_fetch_failed: "Could not read the feed. Check the URL and try again; the system log has the details."
       preview_title: '{title} — preview'
       preview_close: Close
       preview_empty: The feed has no items yet.

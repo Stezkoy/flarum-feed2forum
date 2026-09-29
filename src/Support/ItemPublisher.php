@@ -14,6 +14,7 @@ use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Str;
 use Stezkoy\Feed2forum\Models\Item;
+use Stezkoy\Feed2forum\Support\Text;
 
 class ItemPublisher
 {
@@ -83,7 +84,7 @@ class ItemPublisher
         $articleContent = $this->articlePostContent($item);
 
         if ($articleContent === '') {
-            $articleContent = $this->plainText($item->content ?? '', 500) ?: $this->discussionTitle($item->title);
+            $articleContent = Text::plainText($item->content ?? '', 500) ?: $this->discussionTitle($item->title);
         }
 
         $articlePost->setContentAttribute($articleContent, $author);
@@ -335,10 +336,7 @@ class ItemPublisher
 
     public function plainText(string $content, int $limit): string
     {
-        $text = trim(html_entity_decode(strip_tags($content), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
-        $text = preg_replace('/\s+/u', ' ', $text);
-
-        return Str::limit($text, $limit);
+        return Text::plainText($content, $limit);
     }
 
     private function setOriginalUrl(Discussion $discussion, ?string $url): void
