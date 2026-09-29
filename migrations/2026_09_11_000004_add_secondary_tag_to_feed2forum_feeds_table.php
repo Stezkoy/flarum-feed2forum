@@ -9,7 +9,11 @@ use Illuminate\Database\Schema\Builder;
 // layer the foreign key on top of the helper's closures. Merge FK handling
 // with the column so the final effect matches a single hand-written migration.
 $migration = Migration::addColumns('feed2forum_feeds', [
-    'secondary_tag_id' => ['unsignedInteger', 'nullable' => true],
+    // 'unsigned' is a modifier, not a grammar type: addColumns() passes the
+    // type string straight to Blueprint::addColumn(), and the grammar has no
+    // typeUnsignedInteger() (Blueprint::unsignedInteger() is just a shortcut
+    // for addColumn('integer', ...)->unsigned()).
+    'secondary_tag_id' => ['integer', 'unsigned' => true, 'nullable' => true],
 ]);
 
 $migration['up'] = function (Builder $schema) use ($migration) {
