@@ -3,11 +3,10 @@ import app from 'flarum/admin/app';
 import Button from 'flarum/common/components/Button';
 import Icon from 'flarum/common/components/Icon';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
-import Switch from 'flarum/common/components/Switch';
-import Select from 'flarum/common/components/Select';
-import withAttr from 'flarum/common/utils/withAttr';
 import tagLabel from 'ext:flarum/tags/common/helpers/tagLabel';
 import FeedPreviewModal from './FeedPreviewModal';
+import FeedRow from './FeedRow';
+import NewFeedRow from './NewFeedRow';
 
 const PREFIX = 'stezkoy-feed2forum';
 
@@ -138,74 +137,11 @@ export default class FeedsTableSection extends Component {
           m('.Feed2forumTable-cell', this.translate('feeds_heading_status')),
           m('.Feed2forumTable-cell.Feed2forumTable-actions', this.translate('feeds_heading_actions')),
         ]),
-        ...feeds.map((feed) => this.feedRow(feed)),
-        this.newFeedRow(),
+        ...feeds.map((feed) => m(FeedRow, { feed, section: this })),
+        m(NewFeedRow, { feed: this.newFeed, section: this }),
       ]),
       m('p.helpText', this.translate('feeds_hint')),
     ];
-  }
-
-  feedRow(feed) {
-    return m('.Feed2forumTable-row', [
-      m(
-        '.Feed2forumTable-cell',
-        m('input.FormControl', {
-          type: 'text',
-          value: feed.title() || '',
-          oninput: withAttr('value', (v) => feed.pushAttributes({ title: v })),
-          onblur: withAttr('value', (v) => this.updateFeed(feed, 'title', v.trim())),
-        })
-      ),
-      m(
-        '.Feed2forumTable-cell.Feed2forumTable-cell--grow',
-        m('input.FormControl', {
-          type: 'url',
-          value: feed.url() || '',
-          oninput: withAttr('value', (v) => feed.pushAttributes({ url: v })),
-          onblur: withAttr('value', (v) => this.updateFeed(feed, 'url', v.trim())),
-        })
-      ),
-      m('.Feed2forumTable-cell', this.tagSelect(feed)),
-      m(
-        '.Feed2forumTable-cell',
-        m('input.FormControl', {
-          type: 'number',
-          min: '0',
-          value: feed.publishLimit() != null ? feed.publishLimit() : '',
-          oninput: withAttr('value', (v) => feed.pushAttributes({ publish_limit: v })),
-          onblur: withAttr('value', (v) => this.updateFeed(feed, 'publish_limit', this.parseLimit(v))),
-        })
-      ),
-      m('.Feed2forumTable-cell', this.publishModeSelect(feed)),
-      m(
-        '.Feed2forumTable-cell',
-        m(Switch, {
-          state: feed.status() === 'active',
-          onchange: () => this.toggleFeedStatus(feed),
-        })
-      ),
-      m('.Feed2forumTable-cell.Feed2forumTable-actions', [
-        m(Button, {
-          className: 'Button Button--icon',
-          icon: 'fas fa-sync',
-          loading: !!this.fetching[feed.id()],
-          title: this.translate('fetch_tooltip'),
-          onclick: () => this.fetchFeed(feed),
-        }),
-        m(Button, {
-          className: 'Button Button--icon',
-          icon: 'fas fa-eye',
-          title: this.translate('preview_tooltip'),
-          onclick: () => this.openModal(FeedPreviewModal, { feed }),
-        }),
-        m(Button, {
-          className: 'Button Button--icon',
-          icon: 'fas fa-trash',
-          title: this.translate('feeds_delete_tooltip'),
-          onclick: () => this.deleteFeed(feed),
-        }),
-      ]),
-    ]);
   }
 
   tagSelect(feed) {
@@ -264,61 +200,8 @@ export default class FeedsTableSection extends Component {
     });
   }
 
-  newFeedRow() {
-    const feed = this.newFeed;
-
-    return m('.Feed2forumTable-row.Feed2forumTable-row--new', [
-      m(
-        '.Feed2forumTable-cell',
-        m('input.FormControl', {
-          type: 'text',
-          placeholder: this.translate('new_feed_title'),
-          value: feed.title() || '',
-          oninput: withAttr('value', (v) => feed.pushAttributes({ title: v })),
-        })
-      ),
-      m(
-        '.Feed2forumTable-cell.Feed2forumTable-cell--grow',
-        m('input.FormControl', {
-          type: 'url',
-          placeholder: this.translate('new_feed_url'),
-          value: feed.url() || '',
-          oninput: withAttr('value', (v) => feed.pushAttributes({ url: v })),
-        })
-      ),
-      m('.Feed2forumTable-cell', this.tagSelect(feed)),
-      m(
-        '.Feed2forumTable-cell',
-        m('input.FormControl', {
-          type: 'number',
-          min: '0',
-          placeholder: '5',
-          value: feed.publishLimit() == null ? '' : feed.publishLimit(),
-          oninput: withAttr('value', (v) => feed.pushAttributes({ publish_limit: v })),
-        })
-      ),
-      m('.Feed2forumTable-cell', this.publishModeSelect(feed)),
-      m(
-        '.Feed2forumTable-cell',
-        m(Switch, {
-          state: feed.status() === 'active',
-          onchange: () => feed.pushAttributes({ status: feed.status() === 'active' ? 'paused' : 'active' }),
-        })
-      ),
-      m('.Feed2forumTable-cell.Feed2forumTable-actions', [
-        m(
-          Button,
-          {
-            className: 'Button Button--primary',
-            icon: 'fas fa-plus',
-            loading: this.savingNewFeed,
-            disabled: this.savingNewFeed,
-            onclick: () => this.createFeed(),
-          },
-          this.translate('new_feed_add')
-        ),
-      ]),
-    ]);
+  openPreviewModal(feed) {
+    this.openModal(FeedPreviewModal, { feed });
   }
 
   resetNewFeed() {

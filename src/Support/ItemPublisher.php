@@ -77,32 +77,7 @@ class ItemPublisher
         $this->setOriginalUrl($discussion, $item->link);
         $discussion->save();
 
-        $articlePost = new CommentPost();
-        $articlePost->discussion_id = $discussion->id;
-        $articlePost->created_at = $date;
-        $articlePost->user_id = $author->id;
-        $articlePost->ip_address = '';
-        $articlePost->is_private = false;
-        $articlePost->setRelation('discussion', $discussion);
-        $articlePost->setRelation('user', $author);
-
-        $articleContent = $this->composePostContent($item);
-
-        // Pre-publish edits from the approval queue are the final post text:
-        // use them verbatim, no re-conversion.
-        $edited = trim((string) $item->edited_content);
-
-        if ($edited !== '') {
-            $articleContent = $edited;
-        }
-
-        if ($articleContent === '') {
-            $articleContent = Text::plainText($item->content ?? '', 500) ?: $this->discussionTitle($item);
-        }
-
-        $articlePost->setContentAttribute($articleContent, $author);
-        $articlePost->save();
-        $articlePost->releaseEvents();
+        $articlePost = $this->buildCommentPost($item, $discussion, $author, $this->resolvePostContent($item));
 
         $discussion->first_post_id = $articlePost->id;
         $discussion->refreshCommentCount();
@@ -111,14 +86,7 @@ class ItemPublisher
         $discussion->save();
 
         $this->assignFeedTag($discussion, $item);
-
-        foreach ($discussion->releaseEvents() as $event) {
-            if (property_exists($event, 'actor') && ! $event->actor) {
-                $event->actor = $author;
-            }
-
-            $this->events->dispatch($event);
-        }
+        $this->dispatchDiscussionEvents($discussion, $author);
 
         $item->discussion_id = $discussion->id;
         $item->status = 'published';
@@ -126,6 +94,58 @@ class ItemPublisher
         $item->setRelation('discussion', $discussion);
 
         return $discussion;
+    }
+
+    /**
+     * Assemble and persist the first post of a freshly started discussion.
+     */
+    private function buildCommentPost(Item $item, Discussion $discussion, User $author, string $content): CommentPost
+    {
+        $articlePost = new CommentPost();
+        $articlePost->discussion_id = $discussion->id;
+        $articlePost->created_at = $discussion->created_at;
+        $articlePost->user_id = $author->id;
+        $articlePost->ip_address = '';
+        $articlePost->is_private = false;
+        $articlePost->setRelation('discussion', $discussion);
+        $articlePost->setRelation('user', $author);
+        $articlePost->setContentAttribute($content, $author);
+        $articlePost->save();
+        // Posted events are dropped on purpose: publishing bypasses the
+        // approval flow (see AGENTs.md), listeners are not invited here.
+        $articlePost->releaseEvents();
+
+        return $articlePost;
+    }
+
+    private function resolvePostContent(Item $item): string
+    {
+        $content = $this->composePostContent($item);
+
+        // Pre-publish edits from the approval queue are the final post text:
+        // use them verbatim, no re-conversion.
+        $edited = trim((string) $item->edited_content);
+
+        if ($edited !== '') {
+            return $edited;
+        }
+
+        if ($content === '') {
+            return Text::plainText($item->content ?? '', 500) ?: $this->discussionTitle($item);
+        }
+
+        return $content;
+    }
+
+    private function dispatchDiscussionEvents(Discussion $discussion, User $author): void
+    {
+        foreach ($discussion->releaseEvents() as $event) {
+            if (property_exists($event, 'actor') && ! $event->actor) {
+                $event->actor = $author;
+            }
+
+            $this->events->dispatch($event);
+        }
     }
 
     private function assignFeedTag(Discussion $discussion, Item $item): void
@@ -137,7 +157,6 @@ class ItemPublisher
         }
 
         $tags = Tag::query()
-            ->with('parent')
             ->whereIn('id', array_filter([(int) $feed->tag_id, (int) $feed->secondary_tag_id]))
             ->get();
 
@@ -145,10 +164,7 @@ class ItemPublisher
             return;
         }
 
-        $tags = $tags
-            ->flatMap(fn (Tag $tag) => $this->tagsWithAncestors($tag))
-            ->unique(fn (Tag $tag) => $tag->id)
-            ->values();
+        $tags = $this->withAncestors($tags);
         $tagIds = $tags->pluck('id')->all();
 
         if (! $tagIds) {
@@ -164,19 +180,36 @@ class ItemPublisher
         $discussion->setRelation('tags', $tags);
     }
 
-    private function tagsWithAncestors(Tag $tag): EloquentCollection
+    /**
+     * Collect every ancestor of the given tags with one query per hierarchy
+     * level — no per-tag lazy loading regardless of nesting depth.
+     */
+    private function withAncestors(EloquentCollection $tags): EloquentCollection
     {
-        $tags = [];
-        $current = $tag;
+        $all = $tags->keyBy(fn (Tag $tag) => $tag->id);
 
-        while ($current) {
-            array_unshift($tags, $current);
-            $current = $current->parent;
+        $parentIds = $all
+            ->pluck('parent_id')
+            ->filter()
+            ->unique()
+            ->diff($all->keys());
+
+        while ($parentIds->isNotEmpty()) {
+            $parents = Tag::query()
+                ->whereIn('id', $parentIds)
+                ->get()
+                ->keyBy(fn (Tag $tag) => $tag->id);
+
+            $all = $all->union($parents);
+
+            $parentIds = $parents
+                ->pluck('parent_id')
+                ->filter()
+                ->unique()
+                ->diff($all->keys());
         }
 
-        return (new EloquentCollection($tags))
-            ->unique(fn (Tag $tag) => $tag->id)
-            ->values();
+        return $all->values();
     }
 
     private function discussionTitle(Item $item): string
@@ -373,11 +406,6 @@ class ItemPublisher
         }
 
         return $text;
-    }
-
-    public function plainText(string $content, int $limit): string
-    {
-        return Text::plainText($content, $limit);
     }
 
     private function setOriginalUrl(Discussion $discussion, ?string $url): void
