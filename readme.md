@@ -11,7 +11,7 @@ A Flarum 2.x extension that turns RSS/Atom feeds into **real forum discussions**
 ### Real discussions from feeds
 - Fetch RSS/Atom sources on a schedule and turn every new article into an immediate, native Flarum discussion.
 - One **global author user** for all imported discussions, configured once in the admin panel.
-- Use the article's **publication date from the feed** as the discussion creation date.
+- Use the article's **publication date from the feed** as the discussion creation date (or the approval moment — a global setting, article date by default).
 - Content converted from HTML (paragraphs, lists, images, links) into Flarum formatting.
 
 ### Feeds
@@ -23,6 +23,7 @@ A Flarum 2.x extension that turns RSS/Atom feeds into **real forum discussions**
 
 ### Approval queue & safety
 - **Manual approval queue** — articles wait in the admin panel until you publish each one with a single click (the discussion is created immediately).
+- **Edit before publishing** — adjust the title and the exact post text of a queued item in a dialog before approving it; edits survive feed refreshes and can be reset to the original.
 - Restored items whose discussion was deleted from the forum come back with a **"Previously deleted" badge** and are never auto-published — you decide.
 - Skipped items stay in the database as tombstones, so they are never re-imported.
 - Deduplicate articles by their GUID/link so nothing is imported twice.
@@ -70,6 +71,7 @@ Open **Admin → Extensions → Feed2Forum**.
 - **Author** — the user who authors imported discussions. Select any user; removal/change is supported.
 - **Check frequency (minutes)** — how often feeds are fetched through the Flarum scheduler (default 60 minutes).
 - **Add links to original articles** — show or hide the "Original article" link at the beginning of each imported post (on by default).
+- **Use the article's RSS date** — when enabled (default), imported discussions are dated with the article's publication date from the feed; when disabled, with the moment they are approved or published.
 
 ### Feeds
 Each row of the **Feeds** table is edited in place and saved on blur:
@@ -83,7 +85,7 @@ Each row of the **Feeds** table is edited in place and saved on blur:
 Add new feeds via the blank row at the bottom of the table. Use **Check all feeds now** (top right) to trigger a manual fetch of every active feed.
 
 ### Approval queue
-Feeds in *Manually* mode place their new articles here: publish any of them with one click, skip them, or clear the whole queue at once. Restored items are marked with a "Previously deleted" badge.
+Feeds in *Manually* mode place their new articles here: publish any of them with one click, skip them, or clear the whole queue at once. Every item has an **Edit** dialog — adjust the title and the exact post text before approving. Restored items are marked with a "Previously deleted" badge, edited items with an "Edited" badge.
 
 ### Work log
 A collapsible log below the queue: fetches, publications, skips and errors. Refresh or clear it with the toolbar buttons.
@@ -129,7 +131,7 @@ All steps below run asynchronously through the Flarum queue (default driver: syn
 5. In **auto** mode, up to the feed's *publish limit* of the newest new articles are converted into discussions right away.
 6. In **queue** mode, nothing is published automatically — approve articles from the admin panel instead.
 7. Each discussion gets:
-   - the article's RSS publication date as its creation date,
+   - the article's RSS publication date as its creation date (or the approval moment, depending on the setting),
    - content converted from HTML (paragraphs, lists, images, links) plus the source link,
    - the configured global author as its author,
    - the feed's tags (including their parent tags) applied.
