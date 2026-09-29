@@ -21,27 +21,31 @@ export default class EditItemModal extends Modal {
     // NOTE: Flarum's Modal reserves the method names title()/content() —
     // state properties must NOT use those names (shadowing them kills the
     // modal with "this.title is not a function").
+    this.hasContentEdit = this.item.editedContent() != null;
     this.editTitle = this.item.editedTitle() ?? this.item.title() ?? '';
     this.editContent = this.item.editedContent() ?? '';
-    this.loadedComposed = this.item.editedContent() != null;
 
-    // The converted post text is only serialized on Show — fetch the fresh
-    // item so the dialog shows what would be posted right now.
-    if (!this.loadedComposed) {
-      this.loading = true;
+    // The original (feed version, composed post text) is only serialized on
+    // Show — always fetch it once so "Reset to original" restores it into
+    // the fields immediately and Save can tell "no changes" from a real edit.
+    this.loading = true;
 
-      app.store
-        .find('feed2forum-items', String(this.item.id()))
-        .then((fresh) => {
-          this.item = fresh;
-          this.editContent = fresh.composedContent() ?? '';
-        })
-        .catch(() => app.alerts.show({ type: 'error' }, app.translator.trans(`${PREFIX}.admin.settings.edit_load_error`)))
-        .finally(() => {
-          this.loading = false;
-          m.redraw();
-        });
-    }
+    app.store
+      .find('feed2forum-items', String(this.item.id()))
+      .then((fresh) => {
+        this.item = fresh;
+        this.originalTitle = fresh.title() ?? '';
+        this.originalContent = fresh.composedContent() ?? '';
+
+        if (!this.hasContentEdit) {
+          this.editContent = this.originalContent;
+        }
+      })
+      .catch(() => app.alerts.show({ type: 'error' }, app.translator.trans(`${PREFIX}.admin.settings.edit_load_error`)))
+      .finally(() => {
+        this.loading = false;
+        m.redraw();
+      });
   }
 
   className() {
@@ -57,10 +61,18 @@ export default class EditItemModal extends Modal {
 
     this.saving = true;
 
+    const title = this.editTitle.trim();
+    const content = this.editContent.trim();
+
+    // "Identical to the feed version" means no edit: send nulls so the
+    // overrides are cleared and the Edited badge disappears.
+    const sameTitle = title === (this.originalTitle ?? '').trim() || title === (this.item.title() ?? '').trim();
+    const sameContent = content === (this.originalContent ?? '').trim();
+
     this.item
       .save({
-        edited_title: this.editTitle.trim() || null,
-        edited_content: this.editContent.trim() || null,
+        edited_title: sameTitle ? null : title || null,
+        edited_content: sameContent ? null : content || null,
       })
       .then(() => {
         app.alerts.show({ type: 'success' }, app.translator.trans(`${PREFIX}.admin.settings.edit_saved`));
@@ -77,8 +89,11 @@ export default class EditItemModal extends Modal {
   }
 
   reset() {
-    this.editTitle = this.item.title() ?? '';
-    this.editContent = '';
+    // Restore the feed version into the fields right away (no server round
+    // trip — originalTitle/originalContent were prefetched on init). The
+    // user still presses Save to persist the revert.
+    this.editTitle = this.originalTitle ?? this.item.title() ?? '';
+    this.editContent = this.originalContent ?? '';
   }
 
   content() {
