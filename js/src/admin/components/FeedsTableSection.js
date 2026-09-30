@@ -52,8 +52,12 @@ export default class FeedsTableSection extends Component {
     ]);
   }
 
-  translate(key, vars = {}) {
-    return app.translator.trans(`${PREFIX}.admin.settings.${key}`, vars);
+  translate(key, vars = {}, extract = false) {
+    // Parametrized translations come back as an array of children (ICU rich
+    // format); when one lands in an attribute or confirm() it must be
+    // extracted to a plain string, otherwise Array.toString() joins the
+    // children with commas — "(,15,)".
+    return app.translator.trans(`${PREFIX}.admin.settings.${key}`, vars, extract);
   }
 
   // Avoid the Chrome "Blocked aria-hidden on an element because its

@@ -43,8 +43,10 @@ export default class QueueSection extends Component {
     return m('.Feed2forumSettings-section', [m('h3', this.translate('queue_heading')), m('.Feed2forumSettings-sectionBody', [this.queueBody()])]);
   }
 
-  translate(key, vars = {}) {
-    return app.translator.trans(`${PREFIX}.admin.settings.${key}`, vars);
+  translate(key, vars = {}, extract = false) {
+    // See FeedsTableSection.translate — extract=true for attribute/confirm()
+    // contexts (rich ICU params would otherwise be joined with commas).
+    return app.translator.trans(`${PREFIX}.admin.settings.${key}`, vars, extract);
   }
 
   // Avoid the Chrome "Blocked aria-hidden on an element because its
@@ -99,7 +101,7 @@ export default class QueueSection extends Component {
   publishAll() {
     if (!this.queue.length || this.publishingAll) return;
 
-    if (!confirm(this.translate('queue_publish_all_confirmation', { count: this.queue.length }))) return;
+    if (!confirm(this.translate('queue_publish_all_confirmation', { count: this.queue.length }, true))) return;
 
     this.publishingAll = true;
     m.redraw();
