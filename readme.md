@@ -28,6 +28,7 @@ A Flarum 2.x extension that turns RSS/Atom feeds into **real forum discussions**
 - Skipped items stay in the database as tombstones, so they are never re-imported.
 - Deduplicate articles by their GUID/link so nothing is imported twice.
 - **Clear the whole queue** or refresh all feeds on demand with dedicated buttons.
+- **Publish all** — approve every pending item at once (restored "Previously deleted" items stay for individual review).
 
 ### Work log
 - A collapsible log below the queue shows fetches, publications, skips and errors.
@@ -37,6 +38,7 @@ A Flarum 2.x extension that turns RSS/Atom feeds into **real forum discussions**
 - Heavy work (feed fetching and discussion creation) runs as **queue jobs** (`Flarum\Queue`).
 - Fetch interval is set in **minutes** (default 60) via the Flarum scheduler.
 - Optional **link to the original article** at the beginning of each imported post (can be disabled globally).
+- Configurable **article text retention** — old published/skipped items keep their dedup skeleton while the full text is pruned from the database.
 - English and Russian locales.
 
 ## Requirements
@@ -72,6 +74,7 @@ Open **Admin → Extensions → Feed2Forum**.
 - **Check frequency (minutes)** — how often feeds are fetched through the Flarum scheduler (default 60 minutes).
 - **Add links to original articles** — show or hide the "Original article" link at the beginning of each imported post (on by default).
 - **Use the article's RSS date** — when enabled (default), imported discussions are dated with the article's publication date from the feed; when disabled, with the moment they are approved or published.
+- **Article text retention (days)** — full text of published and skipped items older than this is removed from the database (default 90; 0 = keep forever). Deduplication is not affected.
 
 ### Feeds
 Each row of the **Feeds** table is edited in place and saved on blur:
@@ -85,7 +88,7 @@ Each row of the **Feeds** table is edited in place and saved on blur:
 Add new feeds via the blank row at the bottom of the table. Use **Check all feeds now** (top right) to trigger a manual fetch of every active feed.
 
 ### Approval queue
-Feeds in *Manually* mode place their new articles here: publish any of them with one click, skip them, or clear the whole queue at once. Every item has an **Edit** dialog — adjust the title and the exact post text before approving. Restored items are marked with a "Previously deleted" badge, edited items with an "Edited" badge.
+Feeds in *Manually* mode place their new articles here: publish any of them with one click, **publish everything at once**, skip them, or clear the whole queue. Every item has an **Edit** dialog — adjust the title and the exact post text before approving. Restored items are marked with a "Previously deleted" badge, edited items with an "Edited" badge.
 
 ### Work log
 A collapsible log below the queue: fetches, publications, skips and errors. Refresh or clear it with the toolbar buttons.
