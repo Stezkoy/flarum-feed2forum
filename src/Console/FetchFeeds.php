@@ -8,7 +8,9 @@ use Illuminate\Console\Command;
 use Illuminate\Contracts\Queue\Queue;
 use Stezkoy\Feed2forum\Job\FetchFeedJob;
 use Stezkoy\Feed2forum\Models\Feed;
+use Stezkoy\Feed2forum\Models\Item;
 use Stezkoy\Feed2forum\Support\FeedFetcher;
+use Stezkoy\Feed2forum\Support\WorkLog;
 
 class FetchFeeds extends Command
 {
@@ -19,7 +21,8 @@ class FetchFeeds extends Command
     public function __construct(
         protected Queue $queue,
         protected FeedFetcher $fetcher,
-        protected SettingsRepositoryInterface $settings
+        protected SettingsRepositoryInterface $settings,
+        protected WorkLog $log
     ) {
         parent::__construct();
     }
@@ -57,7 +60,35 @@ class FetchFeeds extends Command
 
         $this->info(sprintf('%d feed fetch job(s) dispatched to the queue.', $feeds->count()));
 
+        $this->pruneContent();
+
         return 0;
+    }
+
+    /**
+     * Content compaction: full article text of published and skipped items
+     * older than the retention window is dropped. The row skeleton (guid,
+     * feed_id, status, content_hash) stays, so deduplication is unaffected —
+     * hasChanges() diffs by hash and will never re-import a compacted row.
+     */
+    private function pruneContent(): void
+    {
+        $days = max(0, (int) $this->settings->get('stezkoy-feed2forum.content_retention_days', 90));
+
+        if ($days <= 0) {
+            return;
+        }
+
+        $count = Item::query()
+            ->whereIn('status', ['published', 'skipped'])
+            ->whereNotNull('content')
+            ->where('created_at', '<', Carbon::now()->subDays($days))
+            ->update(['content' => null]);
+
+        if ($count > 0) {
+            $this->info("Pruned full content of {$count} old item(s) (retention {$days} days).");
+            $this->log->info('Pruned full content of '.$count.' old item(s) (retention '.$days.' days).');
+        }
     }
 
     private function intervalElapsed(): bool

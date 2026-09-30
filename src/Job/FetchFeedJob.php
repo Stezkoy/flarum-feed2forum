@@ -4,6 +4,7 @@ namespace Stezkoy\Feed2forum\Job;
 
 use Flarum\Queue\AbstractJob;
 use Illuminate\Contracts\Queue\Queue;
+use Illuminate\Support\Carbon;
 use Psr\Log\LoggerInterface;
 use Stezkoy\Feed2forum\Models\Feed;
 use Stezkoy\Feed2forum\Models\Item;
@@ -46,27 +47,57 @@ class FetchFeedJob extends AbstractJob
             return;
         }
 
-        $pending = Item::query()
+        // Publish jobs that were dispatched but never ran (lost worker) are
+        // claimable again after a grace period — self-healing without
+        // re-dispatching jobs that are still waiting in the queue.
+        Item::query()
+            ->where('feed_id', $this->feed->id)
+            ->where('status', 'queued')
+            ->where('updated_at', '<', Carbon::now()->subHours(2))
+            ->update(['status' => 'pending']);
+
+        $limit = max(0, (int) $this->feed->publish_limit);
+
+        $claimQuery = Item::query()
             ->where('feed_id', $this->feed->id)
             ->where('status', 'pending')
             // Items restored after their discussion was deleted on the forum
             // wait for manual approval — they are not auto-published.
             ->where('was_deleted', false)
             ->orderByDesc('published_at')
-            ->orderByDesc('id')
-            ->get();
+            ->orderByDesc('id');
 
-        if ($pending->isEmpty()) {
+        if ($limit > 0) {
+            $claimQuery->limit($limit);
+        }
+
+        $ids = $claimQuery->pluck('id')->all();
+
+        if ($ids === []) {
             return;
         }
 
-        $limit = max(0, (int) $this->feed->publish_limit);
-        $candidates = $limit > 0 ? $pending->take($limit) : $pending;
+        // Atomically claim the items: only rows still pending flip to queued,
+        // so a slow queue worker never accumulates duplicate publish jobs for
+        // the same backlog on every fetch cycle.
+        $claimed = Item::query()
+            ->whereIn('id', $ids)
+            ->where('status', 'pending')
+            ->update(['status' => 'queued']);
 
-        foreach ($candidates as $item) {
-            $queue->push(new PublishItemJob($item));
+        if (! $claimed) {
+            return;
         }
 
-        $log->info('Queued '.$candidates->count().' item(s) of "'.$this->feed->title.'" for publishing.', $this->feed->id);
+        $queued = Item::query()
+            ->whereIn('id', $ids)
+            ->where('status', 'queued')
+            ->pluck('id');
+
+        foreach ($queued as $id) {
+            $queue->push(new PublishItemJob(Item::query()->findOrFail($id)));
+        }
+
+        $log->info('Queued '.$claimed.' item(s) of "'.$this->feed->title.'" for publishing.', $this->feed->id);
     }
 }

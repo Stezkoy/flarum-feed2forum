@@ -41,7 +41,8 @@ return [
         // admin payload as JSON true, and String(true) !== '1' rendered the
         // toggles off while the backend treated the setting as on.
         ->default('stezkoy-feed2forum.show_source_link', '1')
-        ->default('stezkoy-feed2forum.use_article_date', '1'),
+        ->default('stezkoy-feed2forum.use_article_date', '1')
+        ->default('stezkoy-feed2forum.content_retention_days', 90),
 
     (new Extend\Console())
         ->command(FetchFeeds::class)

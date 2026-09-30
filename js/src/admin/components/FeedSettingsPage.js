@@ -42,7 +42,7 @@ export default class FeedSettingsPage extends ExtensionPage {
       '.ExtensionPage-settings',
       m('.container', [
         m('.Feed2forumSettings', [
-          this.section('general_heading', [this.authorSetting(), this.fetchIntervalSetting(), this.useArticleDateSetting(), this.showSourceLinkSetting()], 'general_help'),
+          this.section('general_heading', [this.authorSetting(), this.fetchIntervalSetting(), this.useArticleDateSetting(), this.showSourceLinkSetting(), this.contentRetentionSetting()], 'general_help'),
           m(QueueSection, { refreshKey: this.queueRefreshKey }),
           m(LogSection),
           m(FeedsTableSection, { onFeedsChanged: () => this.bumpQueue() }),
@@ -186,6 +186,23 @@ export default class FeedSettingsPage extends ExtensionPage {
         this.translate('use_article_date_label')
       ),
       m('p.helpText', this.translate('use_article_date_help')),
+    ]);
+  }
+
+  contentRetentionSetting() {
+    const key = `${PREFIX}.content_retention_days`;
+    const stream = this.setting(key, '90');
+
+    return m('.Form-group', [
+      m('label', this.translate('content_retention_days_label')),
+      m('input.FormControl', {
+        type: 'number',
+        min: '0',
+        step: '1',
+        value: stream(),
+        oninput: withAttr('value', stream),
+      }),
+      m('p.helpText', this.translate('content_retention_days_help')),
     ]);
   }
 

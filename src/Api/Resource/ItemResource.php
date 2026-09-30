@@ -131,7 +131,7 @@ class ItemResource extends AbstractDatabaseResource
             Schema\Str::make('published_at')
                 ->get(fn (Item $item) => $item->published_at?->toIso8601String()),
             Schema\Str::make('status')
-                ->in(['pending', 'published', 'skipped']),
+                ->in(['pending', 'queued', 'published', 'skipped']),
             Schema\Boolean::make('was_deleted'),
             Schema\Integer::make('discussion_id'),
             Schema\DateTime::make('created_at'),

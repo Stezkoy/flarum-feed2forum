@@ -120,15 +120,16 @@ class ItemPublisher
 
     private function resolvePostContent(Item $item): string
     {
-        $content = $this->composePostContent($item);
-
         // Pre-publish edits from the approval queue are the final post text:
-        // use them verbatim, no re-conversion.
+        // use them verbatim, no re-conversion — check before paying for the
+        // full HTML pipeline.
         $edited = trim((string) $item->edited_content);
 
         if ($edited !== '') {
             return $edited;
         }
+
+        $content = $this->composePostContent($item);
 
         if ($content === '') {
             return Text::plainText($item->content ?? '', 500) ?: $this->discussionTitle($item);

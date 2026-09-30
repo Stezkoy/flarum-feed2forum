@@ -17,6 +17,8 @@ stezkoy-feed2forum:
       show_source_link_help: "When enabled, a link to the original article is added at the beginning of each discussion."
       use_article_date_label: Use the article's RSS date
       use_article_date_help: "When enabled, imported discussions are dated with the article's publication date from the feed. When disabled, they are dated with the moment they are approved or published — newly published discussions then appear at the top of the forum."
+      content_retention_days_label: Article text retention (days)
+      content_retention_days_help: "Full text of published and skipped items older than this many days is removed from the database to save space; deduplication is not affected. 0 keeps everything forever."
       queue_heading: Approval queue
       queue_heading_feed: Feed
       queue_heading_title: Title
