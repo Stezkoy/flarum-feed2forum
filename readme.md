@@ -16,7 +16,7 @@ A Flarum 2.x extension that turns RSS/Atom feeds into **real forum discussions**
 
 ### Feeds
 - Bind **up to two tags** (one primary + one secondary) to each feed — imported discussions are posted with those tags, including their parents. Tag selection uses the standard Flarum dialog.
-- **Per-feed publish limit**: only the N most recent new articles are kept per fetch (0 = unlimited). In manual mode this also caps how many items land in the approval queue.
+- **Per-feed publish limit**: only the N most recent new articles are kept per fetch (0 = unlimited). In manual mode this also caps how many items land in the approval queue. Articles beyond the limit are skipped permanently — a per-feed "Restore skipped" action brings them back to the queue when you raise the limit.
 - **Per-feed publish mode**: *Immediately* (auto) or *Manually* (approval queue).
 - Pause any feed with a single toggle — paused feeds are skipped during fetching.
 - Preview a feed in the admin panel by fetching it live.

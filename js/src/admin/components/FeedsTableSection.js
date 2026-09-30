@@ -24,18 +24,13 @@ export default class FeedsTableSection extends Component {
     this.newFeed = null;
     this.savingNewFeed = false;
     this.fetching = {};
+    this.restoring = {};
     this.checkingAll = false;
     this.tags = [];
 
     this.resetNewFeed();
 
-    app.store
-      .find('feed2forum-feeds')
-      .catch(() => app.alerts.show({ type: 'error' }, this.translate('load_error')))
-      .finally(() => {
-        this.loadingFeeds = false;
-        m.redraw();
-      });
+    this.loadFeeds();
 
     // Per the group docs: load the FULL tag list (incl. children) via
     // app.tagList.load(['parent']) instead of relying on app.store.all('tags').
@@ -86,6 +81,49 @@ export default class FeedsTableSection extends Component {
         this.translate('check_all')
       )
     );
+  }
+
+  loadFeeds() {
+    this.loadingFeeds = true;
+    m.redraw();
+
+    app.store
+      .find('feed2forum-feeds')
+      .catch(() => app.alerts.show({ type: 'error' }, this.translate('load_error')))
+      .finally(() => {
+        this.loadingFeeds = false;
+        m.redraw();
+      });
+  }
+
+  restoreSkipped(feed) {
+    const count = Number(feed.skippedCount() ?? 0);
+
+    if (!count || this.restoring[feed.id()]) return;
+
+    if (!confirm(this.translate('restore_skipped_confirmation', { count }))) return;
+
+    this.restoring[feed.id()] = true;
+    m.redraw();
+
+    app
+      .request({
+        method: 'POST',
+        url: `${app.forum.attribute('apiUrl')}/feed2forum-feeds/${feed.id()}/restore-skipped`,
+      })
+      .then((response) => {
+        app.alerts.show({ type: 'success' }, this.translate('restore_skipped_success', { count: response?.meta?.restored ?? 0 }));
+
+        // The feeds list (skipped counts) and the queue are both stale now.
+        this.loadFeeds();
+
+        if (this.attrs.onFeedsChanged) this.attrs.onFeedsChanged();
+      })
+      .catch(() => app.alerts.show({ type: 'error' }, this.translate('restore_skipped_error')))
+      .finally(() => {
+        delete this.restoring[feed.id()];
+        m.redraw();
+      });
   }
 
   fetchAllFeeds() {

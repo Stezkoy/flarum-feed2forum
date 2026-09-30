@@ -59,6 +59,17 @@ export default class FeedRow extends Component {
           title: section.translate('fetch_tooltip'),
           onclick: () => section.fetchFeed(feed),
         }),
+        ...(Number(feed.skippedCount() ?? 0) > 0
+          ? [
+              m(Button, {
+                className: 'Button Button--icon',
+                icon: 'fas fa-undo',
+                loading: !!section.restoring[feed.id()],
+                title: section.translate('restore_skipped_tooltip', { count: Number(feed.skippedCount()) }),
+                onclick: () => section.restoreSkipped(feed),
+              }),
+            ]
+          : []),
         m(Button, {
           className: 'Button Button--icon',
           icon: 'fas fa-eye',

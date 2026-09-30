@@ -26,6 +26,10 @@ stezkoy-feed2forum:
       queue_published: Discussion created. The item has been removed from the queue.
       queue_queued: The item was added to the publication queue. The discussion appears once the queue worker processes it.
       queue_clear: Clear queue
+      restore_skipped_tooltip: "Restore skipped items to the queue ({count})"
+      restore_skipped_confirmation: "Restore {count} skipped item(s) of this feed to the approval queue? In auto mode they will be published on the next fetch (within the limit)."
+      restore_skipped_success: "Restored to the queue: {count}."
+      restore_skipped_error: Could not restore the items.
       queue_publish_all: Publish all
       queue_publish_all_confirmation: "Publish ALL pending items now? Each one will immediately become a discussion. Restored items (previously deleted) are skipped and stay in the queue."
       queue_publish_all_success: "Published: {published} · Failed: {failed}"

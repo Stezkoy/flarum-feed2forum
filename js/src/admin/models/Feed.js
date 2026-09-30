@@ -29,6 +29,10 @@ export default class Feed extends Model {
     return Model.attribute('status').call(this);
   }
 
+  skippedCount() {
+    return Model.attribute('skipped_count').call(this);
+  }
+
   tag() {
     return Model.hasOne('tag').call(this);
   }

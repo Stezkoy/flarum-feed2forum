@@ -41,6 +41,9 @@ class FeedResource extends AbstractDatabaseResource
     {
         $query
             ->with(['tag', 'secondaryTag'])
+            // How many items this feed has parked as 'skipped' (publish-limit
+            // overflow) — powers the per-feed "Restore skipped" action.
+            ->withCount(['items as skipped_items_count' => fn (Builder $query) => $query->where('status', 'skipped')])
             ->orderByDesc('created_at');
     }
 
@@ -69,6 +72,28 @@ class FeedResource extends AbstractDatabaseResource
                 ->route('GET', '/{id}/preview')
                 ->admin()
                 ->action(fn (FlarumContext $context): array => $this->preview($context)),
+            Endpoint\Endpoint::make('restoreSkipped')
+                ->route('POST', '/{id}/restore-skipped')
+                ->admin()
+                ->action(function (FlarumContext $context): array {
+                    $feed = $context->model;
+
+                    // Flipped back to pending: the rows stay known for dedup,
+                    // so the feed will never import them twice. Restored
+                    // items keep their was_deleted flag and, in auto mode,
+                    // will be published on the next fetch (within the limit).
+                    $restored = Item::query()
+                        ->where('feed_id', $feed->id)
+                        ->where('status', 'skipped')
+                        ->update(['status' => 'pending']);
+
+                    $this->log->info('Restored '.$restored.' skipped item(s) of "'.$feed->title.'" to the queue.', $feed->id);
+
+                    return [
+                        'data' => ['type' => 'feed2forum-feeds', 'id' => (string) $feed->id],
+                        'meta' => ['restored' => $restored],
+                    ];
+                }),
             Endpoint\Endpoint::make('fetch')
                 ->route('POST', '/{id}/fetch')
                 ->admin()
@@ -123,6 +148,9 @@ class FeedResource extends AbstractDatabaseResource
                 ->default('active')
                 ->in(['active', 'paused'])
                 ->writable(),
+            Schema\Integer::make('skipped_count')
+                ->visible(fn (Feed $feed, FlarumContext $context) => ! $context->creating())
+                ->get(fn (Feed $feed) => (int) ($feed->skipped_items_count ?? 0)),
             Schema\DateTime::make('created_at'),
             Schema\Relationship\ToOne::make('tag')
                 ->type('tags')
