@@ -17,6 +17,7 @@ export default class QueueSection extends Component {
     this.loadingQueue = true;
     this.queue = [];
     this.publishing = {};
+    this.publishingAll = false;
 
     this.loadQueue();
   }
@@ -95,6 +96,33 @@ export default class QueueSection extends Component {
       });
   }
 
+  publishAll() {
+    if (!this.queue.length || this.publishingAll) return;
+
+    if (!confirm(this.translate('queue_publish_all_confirmation', { count: this.queue.length }))) return;
+
+    this.publishingAll = true;
+    m.redraw();
+
+    app
+      .request({
+        method: 'POST',
+        url: `${app.forum.attribute('apiUrl')}/feed2forum-items/publish-all`,
+      })
+      .then((response) => {
+        const published = response?.meta?.published ?? 0;
+        const failed = response?.meta?.failed ?? 0;
+
+        app.alerts.show({ type: failed ? 'warning' : 'success' }, this.translate('queue_publish_all_success', { published, failed }));
+        this.loadQueue();
+      })
+      .catch(() => app.alerts.show({ type: 'error' }, this.translate('queue_publish_all_error')))
+      .finally(() => {
+        this.publishingAll = false;
+        m.redraw();
+      });
+  }
+
   clearQueue() {
     if (!confirm(this.translate('queue_clear_confirmation'))) return;
 
@@ -142,15 +170,28 @@ export default class QueueSection extends Component {
     return [
       m('.Feed2forumQueueToolbar', [
         m('span', m('strong', this.translate('queue_count', { count: this.queue.length }))),
-        m(
-          Button,
-          {
-            className: 'Button Button--danger',
-            icon: 'fas fa-broom',
-            onclick: () => this.clearQueue(),
-          },
-          this.translate('queue_clear')
-        ),
+        m('.Feed2forumQueueActions', [
+          m(
+            Button,
+            {
+              className: 'Button',
+              icon: 'fas fa-check-double',
+              loading: this.publishingAll,
+              disabled: this.publishingAll,
+              onclick: () => this.publishAll(),
+            },
+            this.translate('queue_publish_all')
+          ),
+          m(
+            Button,
+            {
+              className: 'Button Button--danger',
+              icon: 'fas fa-broom',
+              onclick: () => this.clearQueue(),
+            },
+            this.translate('queue_clear')
+          ),
+        ]),
       ]),
       m('.Feed2forumTable.Feed2forumTable--queue', [
         m('.Feed2forumTable-row.Feed2forumTable-row--head', [

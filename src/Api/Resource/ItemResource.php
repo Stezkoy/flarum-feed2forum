@@ -66,6 +66,50 @@ class ItemResource extends AbstractDatabaseResource
                 ->route('POST', '/{id}/publish')
                 ->admin()
                 ->action(fn (FlarumContext $context) => $this->publish($context)),
+            Endpoint\Endpoint::make('publishAll')
+                ->route('POST', '/publish-all')
+                ->admin()
+                ->action(function (): array {
+                    // Synchronous like the single-item publish so the admin
+                    // immediately sees the result. Restored items
+                    // (was_deleted) are excluded: they require an individual
+                    // decision, same rule as auto mode.
+                    $ids = Item::query()
+                        ->where('status', 'pending')
+                        ->where('was_deleted', false)
+                        ->orderByDesc('published_at')
+                        ->orderByDesc('id')
+                        ->limit(200)
+                        ->pluck('id');
+
+                    $published = 0;
+                    $failed = 0;
+
+                    foreach ($ids as $id) {
+                        $item = Item::query()->find($id);
+
+                        if (! $item || $item->status !== 'pending') {
+                            continue;
+                        }
+
+                        try {
+                            $discussion = $this->publisher->publish($item);
+
+                            $this->log->info('Published "'.$item->title.'" as discussion #'.$discussion->id.' (publish-all).', $item->feed_id);
+                            $published++;
+                        } catch (\Throwable $e) {
+                            $this->log->error('Failed to publish "'.$item->title.'": '.$e->getMessage(), $item->feed_id);
+                            $failed++;
+                        }
+                    }
+
+                    $this->log->info('Publish-all finished: '.$published.' published, '.$failed.' failed.');
+
+                    return [
+                        'data' => ['type' => 'feed2forum-items', 'id' => 'publish-all'],
+                        'meta' => ['published' => $published, 'failed' => $failed],
+                    ];
+                }),
             Endpoint\Endpoint::make('clearQueue')
                 ->route('POST', '/clear')
                 ->admin()
