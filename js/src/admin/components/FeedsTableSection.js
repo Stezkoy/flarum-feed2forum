@@ -105,7 +105,7 @@ export default class FeedsTableSection extends Component {
 
     if (!count || this.restoring[feed.id()]) return;
 
-    if (!confirm(this.translate('restore_skipped_confirmation', { count }))) return;
+    if (!confirm(this.translate('restore_skipped_confirmation', { count }, true))) return;
 
     this.restoring[feed.id()] = true;
     m.redraw();
