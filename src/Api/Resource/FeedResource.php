@@ -13,8 +13,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Psr\Log\LoggerInterface;
 use Stezkoy\Feed2forum\Job\FetchFeedJob;
 use Stezkoy\Feed2forum\Models\Feed;
+use Stezkoy\Feed2forum\Models\Item;
 use Stezkoy\Feed2forum\Support\FeedFetcher;
 use Stezkoy\Feed2forum\Support\Text;
+use Stezkoy\Feed2forum\Support\WorkLog;
 use Tobyz\JsonApiServer\Context;
 
 class FeedResource extends AbstractDatabaseResource
@@ -23,7 +25,8 @@ class FeedResource extends AbstractDatabaseResource
         protected Queue $queue,
         protected FeedFetcher $fetcher,
         protected LoggerInterface $logger,
-        protected Translator $translator
+        protected Translator $translator,
+        protected WorkLog $log
     ) {
     }
 
